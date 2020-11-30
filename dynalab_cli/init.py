@@ -225,8 +225,7 @@ class InitCommand(BaseCommand):
             # TODO: suggest user to use amend command to fill these fields later
         if value:
             files = [
-                get_path_inside_rootdir(f, root_dir=self.root_dir)
-                for f in value.strip(", ").split(",")
+                get_path_inside_rootdir(f, root_dir=self.root_dir) for f in value.strip(", ").split(",")
             ]
             value = ",".join([f for f in files if f])
         self.update_field(key, value)
