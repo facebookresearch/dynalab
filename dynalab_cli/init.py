@@ -191,7 +191,7 @@ class InitCommand(BaseCommand):
             if ops.lower().strip() in ("y", "yes"):
                 value = True
             print()
-        elif value and not self.check_path(f"{os.path.join(self.root_dir, filename)}"):
+        elif value and not check_path(f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir):
             print(
                 f"{key.capitalize()} file not found. "
                 f"We are unable to install dependencies by {install_message} \n"
