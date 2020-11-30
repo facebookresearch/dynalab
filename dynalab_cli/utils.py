@@ -25,7 +25,7 @@ class AuthToken:
             with open(self.token_path) as f:
                 token = f.read().strip()
             return token
-        raise FileNotFoundError("You need to first login by dynalab-cli login")
+        raise RuntimeError("You need to first login by dynalab-cli login")
 
     def delete_token(self):
         if os.path.exists(self.token_path):
@@ -38,8 +38,8 @@ class AuthToken:
 
 
 def login():
-    authToken = AuthToken()
-    if authToken.exists():
+    auth_token = AuthToken()
+    if auth_token.exists():
         ops = input(
             "An account is already logged in. \
             Do you want to logout and re-login another account? (Y/N)\n"
@@ -55,13 +55,13 @@ def login():
             f"{DYNABENCH_API}/authenticate", json={"email": email, "password": password}
         )
         r.raise_for_status()
-        authToken.save_token(r.json()["token"])
+        auth_token.save_token(r.json()["token"])
         print("Successfully logged in.")
 
 
 def logout():
-    authToken = AuthToken()
-    authToken.delete_token()
+    auth_token = AuthToken()
+    auth_token.delete_token()
     print("Current account logged out.")
 
 

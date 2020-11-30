@@ -56,8 +56,8 @@ class InitCommand(BaseCommand):
             "--install-requirements",
             action="store_true",
             help=(
-                "If a requirements.txt file exists,and this flag is true, "
-                "we will run pip install -r requirements.txt"
+                "If a requirements.txt file exists, and this flag is true, "
+                "we will run pip install -r requirements.txt in the docker"
             ),
         )
         init_parser.add_argument(
@@ -65,7 +65,7 @@ class InitCommand(BaseCommand):
             action="store_true",
             help=(
                 "If a setup.py file exists and this flag is "
-                "true, we will run pip install -e ."
+                "true, we will run pip install -e . in the docker"
             ),
         )
         init_parser.add_argument(
@@ -75,7 +75,7 @@ class InitCommand(BaseCommand):
             help=(
                 "Comma separated list of files that defines the model, "
                 "e.g. vocabulary, config. Note that these files must be under the same "
-                "parent directory as the handler file."
+                "parent directory as the handler file"
             ),
         )
         init_parser.add_argument(
@@ -112,12 +112,12 @@ class InitCommand(BaseCommand):
         if self.config_handler.config_exists():
             ops = input(
                 f"\nFolder {self.work_dir} already initiated for "
-                f"model {self.args.name}. Overwrite? [Y/n] "
+                f"model '{self.args.name}'. Overwrite? [Y/n] "
             )
             if ops.lower() not in ("y", "yes"):
                 print(f"Aborting flow. Nothing was done.")
                 exit(1)
-        print(f"\nInitiating {self.work_dir} for dynalab model {self.args.name}...\n")
+        print(f"\nInitiating {self.work_dir} for dynalab model '{self.args.name}'...\n")
 
         self.initialize_field("task", self.args.task)
         self.initialize_field("checkpoint", self.args.model_checkpoint)
@@ -129,15 +129,16 @@ class InitCommand(BaseCommand):
 
         self.config_handler.write_config(self.config)
 
-        print(f"{self.work_dir} initiated for dynalab model {self.args.name}.")
+        print(f"Done")
 
     def update_field(self, key, value):
         self.config[key] = value
 
     def initialize_field(self, key, value):
+        # FIXME: change hard coded tuples to const lists
         if key == "task":
             self.update_field(key, value)
-        elif key in ("checkpoint", "handler"):
+        elif key in {"checkpoint", "handler"}:
             self.initialize_path(key, value)
         elif key in ("requirements", "setup"):
             self.initialize_dependency_setting(key, value)
@@ -151,8 +152,8 @@ class InitCommand(BaseCommand):
             value = get_path_inside_rootdir(value, root_dir=self.root_dir)
             message = (
                 f"{key.capitalize()} file found at "
-                f"{os.path.join(self.work_dir, value)}. Press enter to continue, or "
-                f"specify a different path to {key} file inside the root dir: "
+                f"{os.path.join(self.work_dir, value)}.Press enter, or specify "
+                f"alternative path [{os.path.join(self.work_dir, value)}]: "
             )
             ops = input(message)
             if ops.lower().strip():
@@ -178,52 +179,48 @@ class InitCommand(BaseCommand):
 
     def initialize_dependency_setting(self, key, value):
         filename = default_filename(key)
-        if not value and check_path(
-            f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
-        ):
+        if key == "requirements":
+            install_message = "pip install -r requirements.txt"
+        elif key == "setup":
+            install_message = "pip install -e ."
+        if not value and check_path(f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir):
             ops = input(
-                f"{os.path.join(self.work_dir, filename)} found. Do you "
-                "want us to install dependencies using it? [Y/n] "
+                f"{key.capitalize()} file found. Do you want us to install "
+                f"dependencies using {os.path.join(self.work_dir, filename)}? [Y/n] "
             )
             if ops.lower().strip() in ("y", "yes"):
                 value = True
-                print(
-                    f"We will install dependencies using "
-                    f"{os.path.join(self.work_dir, filename)}\n"
-                )
-            else:
-                print(
-                    f"We will not install dependencies using "
-                    f"{os.path.join(self.work_dir, filename)}\n"
-                )
-        elif value and not check_path(
-            f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
-        ):
+            print()
+        elif value and not self.check_path(f"{os.path.join(self.root_dir, filename)}"):
             print(
-                f"{os.path.join(self.work_dir, filename)} not found. "
-                "We are unable to install dependency using it. \n"
+                f"{key.capitalize()} file not found. "
+                f"We are unable to install dependencies by {install_message} \n"
             )
             value = False
         self.update_field(key, value)
 
+    def missing_file(self, key, files):
+        is_file = key != "exclude"
+        for f in files:
+            if not self.check_path(f, is_file=is_file):
+                return f
+        return None
+
     def initialize_paths(self, key, value):
         if value:
 
-            def missing_file(files):
-                is_file = key != "exclude"
-                for f in files:
-                    if not check_path(f, root_dir=self.root_dir, is_file=is_file):
-                        return f
-                return None
-
-            missing = missing_file(value.strip(", ").split(","))
+            missing = self.missing_file(key, value.strip(", ").split(","))
             while missing:
+                if key == "model_files":
+                    key_name = "model files"
+                elif key == "exclude":
+                    key_name = "exclude files or folders"
                 value = input(
-                    f"{key.capitalize()} file {missing} not a valid path. "
-                    f"Please re-enter {key} files separated by comma or "
+                    f"Some {key_name} do not have a valid path: {missing}. "
+                    f"Please re-enter {key_name} separated by comma or "
                     f"press enter for an empty list: "
                 )
-                missing = missing_file(value.strip(", ").split(","))
+                missing = self.missing_file(key, value.strip(", ").split(","))
             print()
             # TODO: suggest user to use amend command to fill these fields later
         if value:
