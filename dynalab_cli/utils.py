@@ -136,9 +136,9 @@ class SetupConfigHandler:
         contained_fields = set()
         key = "exclude"
         assert key in config, f"Missing config field {key}"
+        excluded_files = set()
         if config[key]:
             files = config[key].strip(", ").split(",")
-            excluded_files = set()
             for f in files:
                 assert check_path(f, is_file=False), f"{f} not a valid path"
                 excluded_files.add(get_path_inside_rootdir(f))

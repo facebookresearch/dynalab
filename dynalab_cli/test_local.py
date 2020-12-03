@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+import subprocess
 
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import SetupConfigHandler
@@ -35,20 +36,24 @@ class TestLocalCommand(BaseCommand):
                 "dynalab-cli init --amend",
             )
 
-        setup_config = self.config_handler.load_config()
+        config = self.config_handler.load_config()
 
         # Check file size and ask to exclude large files
         total_size = 0
         for dentry in os.scandir("."):
             total_size += dentry.stat().st_size
-        if setup_config["exclude"]:
-            for f in setup_config["exclude"].split(","):
+        if config["exclude"]:
+            for f in config["exclude"].split(","):
                 total_size -= os.path.getsize(f)
         if total_size > MAX_SIZE:
             print(
                 "Warning: Size of current project folder is more than 2GB. "
                 "Please consider add large files or folders to exclude"
             )
+        # with open(os.path.join(self.config_handler.config_dir, 'tmp', 'test_handler.py')) as f:
+        #     print(f.read())
+        
+        subprocess.run(["python", f"{os.path.join(self.config_handler.config_dir, 'tmp', 'test_handler.py')}", f"{config['handler']}"])
 
         # TODO
         # Run handler locally with task mock context

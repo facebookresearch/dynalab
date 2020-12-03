@@ -202,7 +202,7 @@ class InitCommand(BaseCommand):
     def missing_file(self, key, files):
         is_file = key != "exclude"
         for f in files:
-            if not self.check_path(f, is_file=is_file):
+            if not check_path(f, root_dir=self.root_dir, is_file=is_file):
                 return f
         return None
 
