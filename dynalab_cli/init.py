@@ -2,17 +2,13 @@
 import os
 
 from dynalab_cli import BaseCommand
-from dynalab_cli.utils import SetupConfigHandler, get_tasks
-
-
-def default_filename(key):
-    if key in ("handler", "setup"):
-        return key + ".py"
-    if key == "checkpoint":
-        return key + ".pt"
-    if key == "requirements":
-        return key + ".txt"
-    raise NotImplementedError
+from dynalab_cli.utils import (
+    SetupConfigHandler,
+    check_path,
+    default_filename,
+    get_path_inside_rootdir,
+    get_tasks,
+)
 
 
 class InitCommand(BaseCommand):
@@ -150,27 +146,9 @@ class InitCommand(BaseCommand):
         else:
             raise NotImplementedError(f"{key} not supported in setup_config")
 
-    def check_path(self, path, is_file=True):
-        if not path:
-            return False
-        if not os.path.exists(path):
-            return False
-        if is_file and not os.path.isfile(path):
-            return False
-        return self.path_inside_workdir(path)
-
-    def path_inside_workdir(self, path):
-        return os.path.realpath(os.path.expanduser(path)).startswith(self.root_dir)
-
-    def get_path_inside_workdir(self, path):
-        if self.path_inside_workdir(path):
-            realpath = os.path.realpath(os.path.expanduser(path))
-            return realpath[len(self.root_dir) :].lstrip("/")
-        return None
-
     def initialize_path(self, key, value):
-        if self.check_path(value):
-            value = self.get_path_inside_workdir(value)
+        if check_path(value, root_dir=self.root_dir):
+            value = get_path_inside_rootdir(value, root_dir=self.root_dir)
             message = (
                 f"{key.capitalize()} file found at "
                 f"{os.path.join(self.work_dir, value)}. Press enter to continue, or "
@@ -180,7 +158,7 @@ class InitCommand(BaseCommand):
             if ops.lower().strip():
                 value = ops
 
-        while not self.check_path(value):
+        while not check_path(value, root_dir=self.root_dir):
             message = (
                 f"{key.capitalize()} file {value} not a valid path. Please re-specify "
                 f"path to {key} file inside the root dir"
@@ -193,14 +171,16 @@ class InitCommand(BaseCommand):
             value = input(f"{message}: ")
             if key == "handler" and not value.strip():
                 value = self.create_file(key)
-        value = self.get_path_inside_workdir(value)
+        value = get_path_inside_rootdir(value, root_dir=self.root_dir)
         print()
 
         self.update_field(key, value)
 
     def initialize_dependency_setting(self, key, value):
         filename = default_filename(key)
-        if not value and self.check_path(f"{os.path.join(self.root_dir, filename)}"):
+        if not value and check_path(
+            f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
+        ):
             ops = input(
                 f"{os.path.join(self.work_dir, filename)} found. Do you "
                 "want us to install dependencies using it? [Y/n] "
@@ -216,7 +196,9 @@ class InitCommand(BaseCommand):
                     f"We will not install dependencies using "
                     f"{os.path.join(self.work_dir, filename)}\n"
                 )
-        elif value and not self.check_path(f"{os.path.join(self.root_dir, filename)}"):
+        elif value and not check_path(
+            f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
+        ):
             print(
                 f"{os.path.join(self.work_dir, filename)} not found. "
                 "We are unable to install dependency using it. \n"
@@ -230,7 +212,7 @@ class InitCommand(BaseCommand):
             def missing_file(files):
                 is_file = key != "exclude"
                 for f in files:
-                    if not self.check_path(f, is_file=is_file):
+                    if not check_path(f, root_dir=self.root_dir, is_file=is_file):
                         return f
                 return None
 
@@ -246,7 +228,8 @@ class InitCommand(BaseCommand):
             # TODO: suggest user to use amend command to fill these fields later
         if value:
             files = [
-                self.get_path_inside_workdir(f) for f in value.strip(", ").split(",")
+                get_path_inside_rootdir(f, root_dir=self.root_dir)
+                for f in value.strip(", ").split(",")
             ]
             value = ",".join([f for f in files if f])
         self.update_field(key, value)

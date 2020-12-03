@@ -3,11 +3,16 @@
 from argparse import ArgumentParser
 
 from dynalab_cli.init import InitCommand
-from dynalab_cli.user import LoginCommand, LogoutCommand
 from dynalab_cli.test_local import TestLocalCommand
+from dynalab_cli.user import LoginCommand, LogoutCommand
 
 
-command_map = {"login": LoginCommand, "logout": LogoutCommand, "init": InitCommand, "test-local": TestLocalCommand}
+command_map = {
+    "login": LoginCommand,
+    "logout": LogoutCommand,
+    "init": InitCommand,
+    "test-local": TestLocalCommand,
+}
 
 
 def main():
