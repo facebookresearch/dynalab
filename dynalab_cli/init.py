@@ -4,6 +4,7 @@ import os
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import (
     SetupConfigHandler,
+    check_model_name,
     check_path,
     default_filename,
     get_path_inside_rootdir,
@@ -17,12 +18,20 @@ class InitCommand(BaseCommand):
         init_parser = parser.add_parser(
             "init", help="Create a starter folder for model upload"
         )
+
+        def model_name_type(name):
+            check_model_name(name)
+            return str(name)
+
         init_parser.add_argument(
             "-n",
             "--name",
-            type=str,
+            type=model_name_type,
             required=True,
-            help="Name of the model, used as a unique identifier",
+            help=(
+                "Name of the model, used as a unique identifier, "
+                "must be of the pattern ^[a-zA-Z0-9-]+$"
+            ),
         )
         init_parser.add_argument(
             "-t",

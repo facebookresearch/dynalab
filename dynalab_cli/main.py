@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 from dynalab_cli.init import InitCommand
 from dynalab_cli.test import TestCommand
+from dynalab_cli.upload import UploadCommand
 from dynalab_cli.user import LoginCommand, LogoutCommand
 
 
@@ -12,6 +13,7 @@ command_map = {
     "logout": LogoutCommand,
     "init": InitCommand,
     "test": TestCommand,
+    "upload": UploadCommand,
 }
 
 
@@ -23,6 +25,7 @@ def main():
     LogoutCommand.add_args(subparsers)
     InitCommand.add_args(subparsers)
     TestCommand.add_args(subparsers)
+    UploadCommand.add_args(subparsers)
 
     args = parser.parse_args()
 
