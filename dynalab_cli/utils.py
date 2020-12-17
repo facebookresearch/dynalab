@@ -2,44 +2,83 @@
 
 import json
 import os
-from getpass import getpass
+import webbrowser
 
 import requests
 
-from dynalab.config import DYNABENCH_API
+from dynalab.config import DYNABENCH_API, DYNABENCH_WEB
 
 
-class AuthToken:
+class APIToken:
     def __init__(self):
-        self.token_path = os.path.expanduser("~/.dynalab/token")
+        self.cred_path = os.path.expanduser("~/.dynalab/secrets.json")
 
-    def save_token(self, token):
-        dirname = os.path.dirname(self.token_path)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        with open(self.token_path, "w+") as f:
-            f.write(token)
+    def save(self, token):
+        dirname = os.path.dirname(self.cred_path)
+        os.makedirs(dirname, exist_ok=True)
+        data = {}
+        if os.path.exists(self.cred_path):
+            with open(self.cred_path) as f:
+                data = json.load(f)
 
-    def load_token(self):
-        if os.path.exists(self.token_path):
-            with open(self.token_path) as f:
-                token = f.read().strip()
+        data["api_token"] = token
+
+        with open(self.cred_path, "w+") as f:
+            json.dump(data, f)
+
+    def load(self):
+        if os.path.exists(self.cred_path):
+            with open(self.cred_path) as f:
+                token = json.load(f)["api_token"]
             return token
         raise RuntimeError("You need to first login by dynalab-cli login")
 
-    def delete_token(self):
-        if os.path.exists(self.token_path):
-            os.remove(self.token_path)
+    def delete(self):
+        if os.path.exists(self.cred_path):
+            data = {}
+            with open(self.cred_path) as f:
+                data = json.load(f)
+
+            data.pop("api_token", None)
+            if len(data) == 0:
+                os.remove(self.cred_path)
+            else:
+                # Some other config is still there, dump it back
+                with open(self.cred_path, "w") as f:
+                    json.dump(data, f)
 
     def exists(self):
-        if os.path.exists(self.token_path):
-            return True
+        if os.path.exists(self.cred_path):
+            data = {}
+            with open(self.cred_path) as f:
+                data = json.load(f)
+            return "api_token" in data
         return False
 
 
+class AccessToken:
+    def __init__(self):
+        self.api_token = APIToken().load()
+
+    @property
+    def headers(self):
+        return self.get_headers()
+
+    def fetch(self):
+        url = f"{DYNABENCH_API}/authenticate/refresh_from_api"
+        payload = {"api_token": self.api_token}
+        r = requests.get(url, params=payload)
+        r.raise_for_status()
+        access_token = r.json()["token"]
+        return access_token
+
+    def get_headers(self):
+        return {"Authorization": f"Bearer {self.fetch()}"}
+
+
 def login():
-    auth_token = AuthToken()
-    if auth_token.exists():
+    api_token = APIToken()
+    if api_token.exists():
         ops = input(
             "An account is already logged in. \
             Do you want to logout and re-login another account? (Y/N)\n"
@@ -49,19 +88,19 @@ def login():
         else:
             print("Current account remains logged in.")
     else:
-        email = input("Your DynaBench registered email address: ")
-        password = getpass(prompt="Password: ")
-        r = requests.post(
-            f"{DYNABENCH_API}/authenticate", json={"email": email, "password": password}
+        print(
+            "A browser window will open prompting you to login, "
+            + "after login please copy the API token and paste it here"
         )
-        r.raise_for_status()
-        auth_token.save_token(r.json()["token"])
+        webbrowser.open_new_tab(f"{DYNABENCH_WEB}/generate_api_token")
+        user_token = input("Paste your API token here: ")
+        api_token.save(user_token)
         print("Successfully logged in.")
 
 
 def logout():
-    auth_token = AuthToken()
-    auth_token.delete_token()
+    api_token = APIToken()
+    api_token.delete()
     print("Current account logged out.")
 
 
