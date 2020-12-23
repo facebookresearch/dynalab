@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import json
 import os
 from abc import ABC, abstractmethod
 
@@ -13,6 +14,12 @@ class BaseTaskIO(ABC):
     # with a mixture of abstract and concrete methods?
     def __init__(self, data):
         self.data = data
+
+    def get_input_json(self):
+        # for sending data to a serving model
+        # task owner can override if there is
+        # e.g. more than one input test data
+        return json.dumps(self.data)
 
     def _get_mock_context(self, model_name):
         config_handler = SetupConfigHandler(model_name)
@@ -30,17 +37,20 @@ class BaseTaskIO(ABC):
         )
         return context
 
-    def get_mock_data(self):
-        return self.data
+    def _get_mock_input_data(self):
+        return [{"body": self.data}]
 
     def get_mock_input(self, model_name):
-        context = self._get_mock_context(model_name)
-        return self.data, context
-
-    def show_mock_input_data(self, data):
         # Task owner can choose to override this function
         # e.g. if they have more than one input test data
-        print(f"Input data is: ", data)
+        context = self._get_mock_context(model_name)
+        data = self._get_mock_input_data()
+        return data, context
+
+    def show_mock_input_data(self):
+        # Task owner can choose to override this function
+        # e.g. if they have more than one input test data
+        print(f"Mock input data is: ", self._get_mock_input_data())
 
     def mock_handle(self, handle_func, data, context):
         # Task owner can choose to override this function

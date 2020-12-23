@@ -5,16 +5,11 @@ from ts.torch_handler.base_handler import BaseHandler
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = [
-    {
-        "body": {
-            "answer": "pretend you are reviewing a place",
-            "context": "Please pretend you are reviewing a place, "
-            + "product, book or movie",
-            "hypothesis": "What should i pretend?",
-        }
-    }
-]
+data = {
+    "answer": "pretend you are reviewing a place",
+    "context": "Please pretend you are reviewing a place, " + "product, book or movie",
+    "hypothesis": "What should i pretend?",
+}
 
 
 class TaskIO(BaseTaskIO):
