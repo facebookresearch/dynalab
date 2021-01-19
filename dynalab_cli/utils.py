@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import webbrowser
 
 import requests
@@ -11,7 +12,9 @@ from dynalab.config import DYNABENCH_API, DYNABENCH_WEB
 
 class APIToken:
     def __init__(self):
-        self.cred_path = os.path.expanduser("~/.dynalab/secrets.json")
+        self.cred_path = os.path.expanduser(
+            os.path.join("~", ".dynalab", "secrets.json")
+        )
 
     def save(self, token):
         dirname = os.path.dirname(self.cred_path)
@@ -111,6 +114,18 @@ def get_tasks():
     return tasks
 
 
+def get_task_id(shortname):
+    r = requests.get(f"{DYNABENCH_API}/tasks")
+    r.raise_for_status()
+    tasks = r.json()
+    for task in tasks:
+        if shortname == "_".join(task["shortname"].lower().split()):
+            return task["id"]
+    raise RuntimeError(
+        f"Could not find task {shortname}. Task name must be one of {get_tasks()}"
+    )
+
+
 # some file path utils
 def check_path(path, root_dir=".", is_file=True, allow_empty=True):
     if not path:
@@ -139,11 +154,22 @@ def default_filename(key):
     raise NotImplementedError
 
 
-# TODO: WIP
+def check_model_name(name):
+    pat = re.compile("^[a-zA-Z0-9-]+$")
+    if not pat.match(name):
+        raise ValueError(
+            "Model name can only contain letters, numbers and "
+            "dash (it must satisfy the pattern ^[a-zA-Z0-9-]+$)."
+        )
+
+
 class SetupConfigHandler:
-    def __init__(self, name):
+    def __init__(self, name, root_dir="."):
+        check_model_name(name)
         self.name = name
-        self.config_path = f"./.dynalab/{self.name}/setup_config.json"
+        self.config_path = os.path.join(
+            root_dir, os.path.join(".dynalab", self.name, "setup_config.json")
+        )
         self.config_dir = os.path.dirname(self.config_path)
         self.config_fields = {
             "task",
