@@ -229,18 +229,12 @@ class SetupConfigHandler:
                 config[key] = f
             elif key == "model_files":
                 if config[key]:
-                    handler_dir = os.path.dirname(os.path.realpath(config["handler"]))
                     files = config[key].strip(", ").split(",")
                     formated_files = set()
                     for f in files:
                         assert check_path(
                             f, allow_empty=False
                         ), f"{f} is empty or not a valid path"
-                        f = get_path_inside_rootdir(f)
-                        assert os.path.dirname(os.path.realpath(f)) == handler_dir, (
-                            f"Model files {f} not under the same level "
-                            "as handler file {config['handler']}"
-                        )
                         assert (
                             f not in excluded_files
                         ), f"{key} file {f} cannot be excluded"

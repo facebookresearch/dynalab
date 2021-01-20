@@ -83,8 +83,9 @@ class InitCommand(BaseCommand):
             default="",
             help=(
                 "Comma separated list of files that defines the model, "
-                "e.g. vocabulary, config. Note that these files must be under the same "
-                "parent directory as the handler file"
+                "e.g. vocabulary, config. Once added here, you can directly "
+                "import or read these files by name in your handler file "
+                "without specifying paths. "
             ),
         )
         init_parser.add_argument(
