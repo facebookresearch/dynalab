@@ -247,7 +247,7 @@ class SetupConfigHandler:
                 if config[key]:
                     assert check_path(default_filename(key), allow_empty=False), (
                         f"Cannot install {key} without or with empty "
-                        "./{default_filename(key)}"
+                        f"./{default_filename(key)}"
                     )
 
         for field in self.config_fields:
