@@ -2,7 +2,7 @@
 
 from ts.torch_handler.base_handler import BaseHandler
 
-from dynalab.tasks.common import get_mock_context
+from dynalab.tasks.common import BaseTaskIO
 
 
 data = [
@@ -26,9 +26,13 @@ data = [
 ]
 
 
-def get_mock_input(name):
-    context = get_mock_context(name)
-    return data, context
+class TaskIO(BaseTaskIO):
+    def __init__(self):
+        BaseTaskIO.__init__(self, data)
+
+    def verify_response(self, response):
+        # am example function here
+        assert "prob" in response, "prob must be in response"
 
 
 # To be filled
