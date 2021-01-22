@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
+import importlib
 import os
-import subprocess
+import sys
 
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import SetupConfigHandler
@@ -55,38 +56,37 @@ class TestCommand(BaseCommand):
                 "Please consider add large files or folders to exclude"
             )
 
-        test_handler = self.compose_test_handler_file(config)
-        subprocess.run(["python", test_handler])
+        if self.args.local:
+            self.run_local_test(config)
 
         if not self.args.local:
             # pull docker
             pass
 
-    def compose_test_handler_file(self, config):
-        test_handler = os.path.join(
-            self.config_handler.config_dir, "tmp", "test_handler.py"
+    def run_local_test(self, config):
+        # load handler
+        sys.path.append(os.getcwd())
+        handler_spec = importlib.util.spec_from_file_location(
+            "handler", config["handler"]
         )
-        os.makedirs(os.path.join(self.config_handler.config_dir, "tmp"), exist_ok=True)
+        handler = importlib.util.module_from_spec(handler_spec)
+        handler_spec.loader.exec_module(handler)
 
-        handler_dir = os.path.join(".", os.path.dirname(config["handler"]))
-        handler_name = os.path.splitext(os.path.basename(config["handler"]))[0]
+        # load taskIO
+        taskIO = importlib.import_module(f"dynalab.tasks.{config['task']}").TaskIO()
 
-        import_handler_command = (
-            f"import sys\nsys.path.append('{handler_dir}')\n"
-            f"handler = __import__('{handler_name}')\n"
-        )
-        import_context_command = (
-            f"from dynalab.tasks.{config['task']} import get_mock_input\n"
-        )
+        print("Obtaining test input data...")
+        data, context = taskIO.get_mock_input(self.args.name)
+        taskIO.show_mock_input_data(data)
 
-        run_command = (
-            f"if __name__ == '__main__':\n"
-            f"    data, context = get_mock_input('{self.args.name}')\n"
-            f"    handler.handle(data=data, context=context)\n"
-            f"    print('Local test passed')\n"
-        )
-        with open(test_handler, "w+") as f:
-            f.write(import_handler_command)
-            f.write(import_context_command)
-            f.write(run_command)
-        return test_handler
+        print("Getting model response...")
+        response = taskIO.mock_handle(handler.handle, data, context)
+        taskIO.show_model_response(response)
+
+        print("Verifying model response...")
+        try:
+            taskIO.verify_mock_response(response)
+        except Exception as e:
+            raise RuntimeError(f"Local test failed because of: {e}")
+        else:
+            print("Local test passed")
