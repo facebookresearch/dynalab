@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+import subprocess
 
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import (
@@ -10,6 +11,9 @@ from dynalab_cli.utils import (
     get_path_inside_rootdir,
     get_tasks,
 )
+
+
+TASKS_AVAILABLE = get_tasks()
 
 
 class InitCommand(BaseCommand):
@@ -34,12 +38,7 @@ class InitCommand(BaseCommand):
             ),
         )
         init_parser.add_argument(
-            "-t",
-            "--task",
-            type=str,
-            choices=get_tasks(),
-            required=True,
-            help="Name of the task",
+            "-t", "--task", type=str, choices=TASKS_AVAILABLE, help="Name of the task"
         )
         init_parser.add_argument(
             "-d",
@@ -97,10 +96,10 @@ class InitCommand(BaseCommand):
                 "unnecessary large folders or files like checkpoints"
             ),
         )
-        # TODO: enable updating a field
-        # e.g. init_parser.add_argument("--update-config", nargs="+",
-        # help="Update config fields via dynalab-cli init
-        # --update <field1> <value1> <f2> <v2>")
+
+        init_parser.add_argument(
+            "--amend", action="store_true", help="Update the config"
+        )
 
     def __init__(self, args):
         self.args = args
@@ -113,21 +112,34 @@ class InitCommand(BaseCommand):
                 f"Please input a valid root path to your repo: "
             )  # user typed path
             self.root_dir = os.path.realpath(os.path.expanduser(self.work_dir))
-        print()
 
         self.config_handler = SetupConfigHandler(args.name)
         self.config = {}
 
     def run_command(self):
+        if self.args.amend:
+            if not self.config_handler.config_exists():
+                raise RuntimeError("Please run dynalab-cli init first")
+            EDITOR = os.environ.get("EDITOR", "vim")
+            subprocess.run([EDITOR, self.config_handler.config_path])
+            try:
+                print("Validating the updated config...")
+                self.config_handler.validate_config()
+            except AssertionError as e:
+                raise RuntimeError(
+                    f"Validation failed: {e}. "
+                    "Please update this field with dynalab-cli init --amend"
+                )
+            return
         if self.config_handler.config_exists():
             ops = input(
-                f"\nFolder {self.work_dir} already initiated for "
+                f"Folder {self.work_dir} already initialized for "
                 f"model '{self.args.name}'. Overwrite? [Y/n] "
             )
             if ops.lower() not in ("y", "yes"):
                 print(f"Aborting flow. Nothing was done.")
                 exit(1)
-        print(f"\nInitiating {self.work_dir} for dynalab model '{self.args.name}'...\n")
+        print(f"Initializing {self.work_dir} for dynalab model '{self.args.name}'...")
 
         self.initialize_field("task", self.args.task)
         self.initialize_field("checkpoint", self.args.model_checkpoint)
@@ -139,7 +151,7 @@ class InitCommand(BaseCommand):
 
         self.config_handler.write_config(self.config)
 
-        print(f"Done")
+        print("Done")
 
     def update_field(self, key, value):
         self.config[key] = value
@@ -147,7 +159,7 @@ class InitCommand(BaseCommand):
     def initialize_field(self, key, value):
         # FIXME: change hard coded tuples to const lists
         if key == "task":
-            self.update_field(key, value)
+            self.initialize_task(key, value)
         elif key in {"checkpoint", "handler"}:
             self.initialize_path(key, value)
         elif key in ("requirements", "setup"):
@@ -156,6 +168,15 @@ class InitCommand(BaseCommand):
             self.initialize_paths(key, value)
         else:
             raise NotImplementedError(f"{key} not supported in setup_config")
+
+    def initialize_task(self, key, value):
+        while value not in TASKS_AVAILABLE:
+            message = (
+                f"Please choose a valid task name from one of "
+                f"[{', '.join(TASKS_AVAILABLE)}]: "
+            )
+            value = input(message)
+        self.update_field(key, value)
 
     def initialize_path(self, key, value):
         if check_path(value, root_dir=self.root_dir):
@@ -183,7 +204,6 @@ class InitCommand(BaseCommand):
             if key == "handler" and not value.strip():
                 value = self.create_file(key)
         value = get_path_inside_rootdir(value, root_dir=self.root_dir)
-        print()
 
         self.update_field(key, value)
 
@@ -202,13 +222,12 @@ class InitCommand(BaseCommand):
             )
             if ops.lower().strip() in ("y", "yes"):
                 value = True
-            print()
         elif value and not check_path(
             f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
         ):
             print(
                 f"{key.capitalize()} file not found. "
-                f"We are unable to install dependencies by {install_message} \n"
+                f"We are unable to install dependencies with {install_message}"
             )
             value = False
         self.update_field(key, value)
@@ -221,8 +240,12 @@ class InitCommand(BaseCommand):
         return None
 
     def initialize_paths(self, key, value):
-        if value:
-
+        if not value:
+            print(
+                f"No {key} path specified. You can "
+                f"provide paths by using dynalab-cli init --amend"
+            )
+        else:
             missing = self.missing_file(key, value.strip(", ").split(","))
             while missing:
                 if key == "model_files":
@@ -235,8 +258,6 @@ class InitCommand(BaseCommand):
                     f"press enter for an empty list: "
                 )
                 missing = self.missing_file(key, value.strip(", ").split(","))
-            print()
-            # TODO: suggest user to use amend command to fill these fields later
         if value:
             files = [
                 get_path_inside_rootdir(f, root_dir=self.root_dir)
