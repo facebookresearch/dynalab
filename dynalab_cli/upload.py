@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import os
 import subprocess
 
 import requests
@@ -29,13 +30,24 @@ class UploadCommand(BaseCommand):
         print("Tarballing the project directory...")
         config = self.config_handler.load_config()
         tarball = f"{self.args.name}.tar.gz"
-        exclude_command = ""
-        if config["exclude"]:
-            for f in config["exclude"].split(","):
-                exclude_command += f"--exclude={f} "
-        exclude_command += f"--exclude=.dynalab/{self.args.name}/tmp"
+        tmp_dir = os.path.join(".dynalab", self.args.name, "tmp")
+        os.makedirs(tmp_dir, exist_ok=True)
+        with open(os.path.join(tmp_dir, "exclude.txt"), "w+") as f:
+            if config["exclude"]:
+                for ex in config["exclude"].split(","):
+                    f.write(ex + "\n")
+            for m in os.listdir(".dynalab"):
+                if m != self.args.name:
+                    f.write(os.path.join(".dynalab", m) + "\n")
+            f.write(tmp_dir)
         process = subprocess.run(
-            ["tar", exclude_command, "-czf", tarball, "."],
+            [
+                "tar",
+                f"--exclude-from={os.path.join(tmp_dir, 'exclude.txt')}",
+                "-czf",
+                tarball,
+                ".",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
