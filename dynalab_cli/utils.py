@@ -110,7 +110,7 @@ def logout():
 def get_tasks():
     r = requests.get(f"{DYNABENCH_API}/tasks")
     r.raise_for_status()
-    tasks = ["_".join(task["shortname"].lower().split()) for task in r.json()]
+    tasks = [task["task_code"] for task in r.json() if task["task_code"]]
     return tasks
 
 
@@ -119,7 +119,7 @@ def get_task_id(shortname):
     r.raise_for_status()
     tasks = r.json()
     for task in tasks:
-        if shortname == "_".join(task["shortname"].lower().split()):
+        if shortname == task["task_code"]:
             return task["id"]
     raise RuntimeError(
         f"Could not find task {shortname}. Task name must be one of {get_tasks()}"
