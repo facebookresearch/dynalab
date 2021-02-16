@@ -167,8 +167,9 @@ class SetupConfigHandler:
     def __init__(self, name, root_dir="."):
         check_model_name(name)
         self.name = name
+        self.root_dir = root_dir
         self.config_path = os.path.join(
-            root_dir, os.path.join(".dynalab", self.name, "setup_config.json")
+            self.root_dir, os.path.join(".dynalab", self.name, "setup_config.json")
         )
         self.config_dir = os.path.dirname(self.config_path)
         self.config_fields = {
@@ -208,9 +209,12 @@ class SetupConfigHandler:
             files = config[key].strip(", ").split(",")
             for f in files:
                 assert check_path(
-                    f, is_file=False, allow_empty=False
+                    os.path.join(self.root_dir, f),
+                    root_dir=self.root_dir,
+                    is_file=False,
+                    allow_empty=False,
                 ), f"{f} is empty or not a valid path"
-                excluded_files.add(get_path_inside_rootdir(f))
+                excluded_files.add(f)
             config[key] = ",".join(excluded_files)
         for key in config.keys():
             assert key in self.config_fields, f"Invalid config field {key}"
@@ -220,37 +224,40 @@ class SetupConfigHandler:
                 assert config[key] in get_tasks(), f"Invalid task name {config[key]}"
             elif key in ("checkpoint", "handler"):
                 assert check_path(
-                    config[key], allow_empty=False
+                    os.path.join(self.root_dir, config[key]),
+                    root_dir=self.root_dir,
+                    allow_empty=False,
                 ), f"{config[key]} is empty or not a valid path"
-                f = get_path_inside_rootdir(config[key])
-                assert f not in excluded_files, f"{key} file {f} cannot be excluded"
+                assert (
+                    config[key] not in excluded_files
+                ), f"{key} file {config[key]} cannot be excluded"
                 if key == "handler":
-                    assert f.endswith(".py"), f"Handler must be a Python file"
-                config[key] = f
+                    assert config[key].endswith(".py"), f"Handler must be a Python file"
             elif key == "model_files":
                 if config[key]:
-                    files = config[key].strip(", ").split(",")
-                    formated_files = set()
+                    files = config[key].split(",")
                     for f in files:
                         assert check_path(
-                            f, allow_empty=False
-                        ), f"{f} is empty or not a valid path"
+                            os.path.join(self.root_dir, f),
+                            root_dir=self.root_dir,
+                            allow_empty=False,
+                        ), f"{key} path {f} is empty or not a valid path"
                         assert (
                             f not in excluded_files
                         ), f"{key} file {f} cannot be excluded"
-                        formated_files.add(f)
-                    config[key] = ",".join(formated_files)
             elif key in ("requirements", "setup"):
                 assert isinstance(
                     config[key], bool
                 ), f"{key.capitalize()} field must be a boolean true/false"
                 if config[key]:
-                    assert check_path(default_filename(key), allow_empty=False), (
+                    assert check_path(
+                        os.path.join(self.root_dir, default_filename(key)),
+                        root_dir=self.root_dir,
+                        allow_empty=False,
+                    ), (
                         f"Cannot install {key} without or with empty "
                         f"./{default_filename(key)}"
                     )
 
         for field in self.config_fields:
             assert field in contained_fields, f"Missing config field {key}"
-
-        self.write_config(config)
