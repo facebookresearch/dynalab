@@ -16,5 +16,9 @@ setup(
     author_email="dynabench@fb.com",
     url="http://dynabench.org",
     include_package_data=True,
-    install_requires=["requests>=2.24.0"],
+    install_requires=[
+        "requests>=2.24.0",
+        "torchserve>=0.2.0",
+        "torch-model-archiver>=0.2.0",
+    ],
 )
