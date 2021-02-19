@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
+import shutil
 import subprocess
 
 from dynalab_cli import BaseCommand
@@ -268,13 +269,22 @@ class InitCommand(BaseCommand):
 
     def create_file(self, key):
         filename = default_filename(key)
-        # TODO: create an empty handler file inheriting from the base handler
-        if os.path.exists(f"{os.path.join(self.root_dir, filename)}"):
-            ops = input(
-                f"{os.path.join(self.work_dir, filename)} exists. Overwrite? [Y/n] "
-            )
+        filepath = os.path.join(self.root_dir, filename)
+        printpath = os.path.join(self.work_dir, filename)
+
+        if os.path.exists(filepath):
+            ops = input(f"{printpath} exists. Overwrite? [Y/n] ")
             if ops.strip().lower() not in ("y", "yes"):
                 return None
-        open(f"{os.path.join(self.root_dir, filename)}", "w+").close()
-        print(f"Created new {key} file at {os.path.join(self.work_dir, filename)}")
-        return f"{os.path.join(self.work_dir, filename)}"
+        if key == "handler":
+            template = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+                "dynalab",
+                "handler",
+                "handler_template.py",
+            )
+            shutil.copy(template, filepath)
+        else:
+            open(filepath, "w+").close()
+        print(f"Created new {key} file at {printpath}")
+        return printpath
