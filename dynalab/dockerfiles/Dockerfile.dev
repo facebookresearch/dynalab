@@ -44,4 +44,5 @@ RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip inst
 RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -e code; fi
 
 ENV model_name=${model_name}
+ENV PYTHONIOENCODING=UTF-8
 ENTRYPOINT /usr/local/bin/dev-entrypoint.sh ${model_name}

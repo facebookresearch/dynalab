@@ -38,5 +38,6 @@ ADD ${tarball_name}.tar.gz /home/model-server/code
 RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -r code/requirements.txt; fi
 RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -e code; fi
 
+ENV PYTHONIOENCODING=UTF-8
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
 CMD ["serve"]
