@@ -26,6 +26,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3 1
 
 RUN pip install --no-cache-dir torchserve
+RUN pip install --no-cache-dir torch==1.7.1
 
 COPY ${add_dir}/dev-docker-entrypoint.sh /usr/local/bin/dev-entrypoint.sh
 RUN chmod +x /usr/local/bin/dev-entrypoint.sh
@@ -40,8 +41,8 @@ ENV TEMP=/home/model-server/tmp
 ADD ${add_dir}/${model_name}.tar.gz /home/model-server/code
 
 RUN pip install -e code/dynalab # FIXME: change to pip install dynalab when dynalab is published
-RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -r code/requirements.txt; fi
-RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -e code; fi
+RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -Ir code/requirements.txt; fi
+RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -Ie code; fi
 
 ENV model_name=${model_name}
 ENV PYTHONIOENCODING=UTF-8
