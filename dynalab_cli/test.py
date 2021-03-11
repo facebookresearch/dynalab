@@ -147,6 +147,8 @@ class TestCommand(BaseCommand):
             docker_build_command = [
                 "docker",
                 "build",
+                "--network",
+                "host",
                 "-t",
                 self.args.name,
                 "-f",
