@@ -25,6 +25,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3 1
 
 RUN pip install --no-cache-dir torchserve
+RUN pip install --no-cache-dir torch==1.7.1
 
 COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
@@ -35,8 +36,8 @@ COPY config.properties /home/model-server/config.properties
 WORKDIR /home/model-server
 ENV TEMP=/home/model-server/tmp
 ADD ${tarball_name}.tar.gz /home/model-server/code
-RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -r code/requirements.txt; fi
-RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -e code; fi
+RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -Ir code/requirements.txt; fi
+RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -Ie code; fi
 
 ENV PYTHONIOENCODING=UTF-8
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
