@@ -4,38 +4,24 @@
 Instructions:
 Please work through this file to construct your handler. Here are things
 to watch out for:
-1. TODO blocks: you need to fill or modify these according to the instructions.
+- TODO blocks: you need to fill or modify these according to the instructions.
    The code in these blocks are for demo purpose only and they may not work.
-2. NOTE inline comments: remember to follow these instructions to pass the test.
-3. Please do not modify anything outside TODO blocks.
-4. Only pytorch models are supported at the moment.
+- NOTE inline comments: remember to follow these instructions to pass the test.
 """
+
+import json
+import os
+import sys
+
+import torch
 
 from dynalab.handler.base_handler import BaseDynaHandler
 
 
-# ############TODO############
-"""
-import libraries as necessrary here,
-and remember to add thrid-party libraries to your requirements file
-"""
-import json  # noqa isort:skip
-import os  # noqa isort:skip
-import sys  # noqa isort:skip
-
-import torch  # noqa isort:skip
-
-# ############################
-
-sys.path.append("/home/model-server/code")  # NOTE: in local test, comment this line
-
-# ############TODO############
-"""
-Import modules from your own project repo here
-"""
+# NOTE: to import modules from your folder, use the following line;
+# in local test, comment it out
+sys.path.append("/home/model-server/code")
 import MyModel  # noqa isort:skip
-
-# ############################
 
 
 class Handler(BaseDynaHandler):
@@ -45,7 +31,7 @@ class Handler(BaseDynaHandler):
         """
         model_pt_path, extra_file_dir, device = self._handler_initialize(context)
 
-        # ############TODO############
+        # ############TODO 1: Initialize model ############
         """
         Load model and read relevant files here.
         Your extra files can be read from os.path.join(extra_file_dir, file_name).
@@ -58,7 +44,7 @@ class Handler(BaseDynaHandler):
         self.model.load_state_dict(torch.load(model_pt_path, map_location="cpu"))
         self.model.to(device)
         self.model.eval()
-        # ############################
+        # #################################################
 
         self.initialized = True
 
@@ -68,7 +54,7 @@ class Handler(BaseDynaHandler):
         """
         example = self._read_data(data)
 
-        # ############TODO############
+        # ############TODO 2: preprocess data #############
         """
         You can extract the key and values from the input data like below
         example is a always json object. Yo can see what an example looks like by
@@ -79,7 +65,7 @@ class Handler(BaseDynaHandler):
         context = example["context"]
         hypothesis = example["hypothesis"]
         input_data = len(context) + len(hypothesis)
-        # ############################
+        # #################################################
 
         return input_data
 
@@ -88,13 +74,13 @@ class Handler(BaseDynaHandler):
         do inference on the processed example
         """
 
-        # ############TODO############
+        # ############TODO 3: inference ###################
         """
         Run model prediction using the processed data
         """
         with torch.no_grad():
             inference_output = self.model(input_data)
-        # ############################
+        # #################################################
 
         return inference_output
 
@@ -109,14 +95,14 @@ class Handler(BaseDynaHandler):
         """
         response = {}
 
-        # ############TODO############
+        # ############TODO 4: postprocess response ########
         """
         Add attributes to response
         """
         response["id"] = self._read_data(data)["uid"]
         response["label"] = inference_output > 0.5
         response["prob"] = inference_output
-        # ############################
+        # #################################################
 
         return [response]
 
@@ -130,7 +116,7 @@ def handle(data, context):
     if data is None:
         return None
 
-    # ############TODO############
+    # ############TODO 5: assemble inference pipeline #####
     """
     Normally you don't need to change anything in this block.
     However, if you do need to change this part (e.g. function name, argument, etc.),
@@ -139,6 +125,6 @@ def handle(data, context):
     input_data = _service.preprocess(data)
     output = _service.inference(input_data)
     response = _service.postprocess(output, data)
-    # ############################
+    # #####################################################
 
     return response

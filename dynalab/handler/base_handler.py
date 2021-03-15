@@ -13,7 +13,7 @@ class BaseDynaHandler(BaseHandler):
 
     def _handler_initialize(self, context):
         """
-        Helper function to initializes the variables neccessary for the handler
+        Helper function to initialize the variables neccessary for the handler
         """
         manifest = context.manifest
         properties = context.system_properties
