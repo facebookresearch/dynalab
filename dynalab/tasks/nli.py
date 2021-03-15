@@ -1,7 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from ts.torch_handler.base_handler import BaseHandler
-
 from dynalab.tasks.common import BaseTaskIO
 
 
@@ -29,8 +27,3 @@ class TaskIO(BaseTaskIO):
     def verify_response(self, response):
         # am example function here
         assert "prob" in response, "prob must be in response"
-
-
-# To be filled
-class DynaHandler(BaseHandler):
-    pass
