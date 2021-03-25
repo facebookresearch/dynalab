@@ -1,5 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import hashlib
 import json
 import os
 from abc import ABC, abstractmethod
@@ -52,10 +53,10 @@ class BaseTaskIO(ABC):
         # e.g. if they have more than one input test data
         print(f"Mock input data is: ", self._get_mock_input_data())
 
-    def mock_handle(self, handle_func, data, context):
+    def mock_handle(self, handle_func, mock_data, mock_context):
         # Task owner can choose to override this function
         # e.g. if they have more than one input test data
-        response = handle_func(data, context)
+        response = handle_func(mock_data, mock_context)
         return response
 
     def show_model_response(self, response):
@@ -69,7 +70,35 @@ class BaseTaskIO(ABC):
         # is e.g. more than one input test data
         self.verify_response(response[0])
 
+    def generate_response_signature(self, response):
+        """
+        This function generates a unique signature
+        based on secret, task, input and output
+        """
+        task, inputs, outputs = self.parse_signature_input(response)
+        h = hashlib.sha1()
+        my_secret = os.environ.get("my_secret", "")
+        h.update(my_secret.encode("utf-8"))
+        h.update(task.encode("utf-8"))
+        for key in sorted(inputs.keys()):
+            h.update(str(inputs[key]).encode("utf-8"))
+        for key in sorted(outputs.keys()):
+            h.update(str(outputs[key]).encode("utf-8"))
+        signature = h.hexdigest()
+        return signature
+
+    def sign_response(self, response):
+        response["signed"] = self.generate_response_signature(response)
+        return response
+
     @abstractmethod
     def verify_response(self, response):
         # verify the actual response
+        raise NotImplementedError
+
+    @abstractmethod
+    def parse_signature_input(self, response):
+        """
+        Return task code name, inputs and outputs used to generate signature
+        """
         raise NotImplementedError

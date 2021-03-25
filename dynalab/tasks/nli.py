@@ -1,9 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import uuid
+
 from dynalab.tasks.common import BaseTaskIO
 
 
 data = {
+    "uid": str(uuid.uuid4()),
     "context": "Old Trafford is a football stadium "
     + " in Old Trafford, "
     + "Greater Manchester, England, and the home of "
@@ -16,14 +19,20 @@ data = {
     "hypothesis": "There is no club football stadium in "
     + "England larger "
     + "than the one in Manchester.",
-    "target": 0,
 }
 
 
 class TaskIO(BaseTaskIO):
-    def __init__(self):
+    def __init__(self, data=data):
         BaseTaskIO.__init__(self, data)
 
     def verify_response(self, response):
         # am example function here
         assert "prob" in response, "prob must be in response"
+        assert response["signed"] == self.generate_response_signature(response)
+
+    def parse_signature_input(self, response):
+        task = "nli"
+        inputs = {key: self.data[key] for key in ["context", "hypothesis"]}
+        outputs = {key: response[key] for key in ["label"]}
+        return task, inputs, outputs
