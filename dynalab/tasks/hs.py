@@ -1,19 +1,25 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+import uuid
+
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = {
-    "context": "Please provide a hateful or not hateful statement",
-    "hypothesis": "It is a good day",
-    "target": 0,
-}
+data = {"uid": str(uuid.uuid4()), "context": "It is a good day"}
 
 
 class TaskIO(BaseTaskIO):
-    def __init__(self):
+    def __init__(self, data=data):
         BaseTaskIO.__init__(self, data)
 
     def verify_response(self, response):
         # am example function here
-        assert "prob" in response
+        assert "id" in response and response["id"] == self.data["uid"]
+        assert "label" in response and response["label"] in ("hate", "nohate")
+        assert response["signed"] == self.generate_response_signature(response)
+
+    def parse_signature_input(self, response):
+        task = "hs"
+        inputs = {key: self.data[key] for key in ["context"]}
+        outputs = {key: response[key] for key in ["label"]}
+        return task, inputs, outputs

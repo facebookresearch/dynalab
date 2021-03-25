@@ -28,7 +28,8 @@ class TaskIO(BaseTaskIO):
 
     def verify_response(self, response):
         # am example function here
-        assert "prob" in response, "prob must be in response"
+        assert "id" in response and response["id"] == self.data["uid"]
+        assert "label" in response and response["label"] in ("c", "e", "n")
         assert response["signed"] == self.generate_response_signature(response)
 
     def parse_signature_input(self, response):
