@@ -70,14 +70,14 @@ class BaseTaskIO(ABC):
         # is e.g. more than one input test data
         self.verify_response(response[0])
 
-    def generate_response_signature(self, response):
+    def generate_response_signature(self, response, secret=""):
         """
         This function generates a unique signature
         based on secret, task, input and output
         """
         task, inputs, outputs = self.parse_signature_input(response)
         h = hashlib.sha1()
-        my_secret = os.environ.get("my_secret", "")
+        my_secret = os.environ.get("my_secret", secret)
         h.update(my_secret.encode("utf-8"))
         h.update(task.encode("utf-8"))
         for key in sorted(inputs.keys()):
