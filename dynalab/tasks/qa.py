@@ -17,7 +17,6 @@ class TaskIO(BaseTaskIO):
         BaseTaskIO.__init__(self, data)
 
     def verify_response(self, response):
-        # am example function here
         assert "id" in response and response["id"] == self.data["uid"]
         assert "answer" in response and response["answer"] in self.data["context"]
         assert response["signed"] == self.generate_response_signature(response)

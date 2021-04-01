@@ -13,7 +13,6 @@ class TaskIO(BaseTaskIO):
         BaseTaskIO.__init__(self, data)
 
     def verify_response(self, response):
-        # am example function here
         assert "id" in response and response["id"] == self.data["uid"]
         assert "label" in response and response["label"] in {
             "positive",

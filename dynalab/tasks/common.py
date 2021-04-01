@@ -77,7 +77,7 @@ class BaseTaskIO(ABC):
         """
         task, inputs, outputs = self.parse_signature_input(response)
         h = hashlib.sha1()
-        my_secret = os.environ.get("my_secret", secret)
+        my_secret = os.environ.get("MY_SECRET", secret)
         h.update(my_secret.encode("utf-8"))
         h.update(task.encode("utf-8"))
         for key in sorted(inputs.keys()):
@@ -93,7 +93,9 @@ class BaseTaskIO(ABC):
 
     @abstractmethod
     def verify_response(self, response):
-        # verify the actual response
+        """
+        Defines task output by verifying a response satisfies all requirements
+        """
         raise NotImplementedError
 
     @abstractmethod
