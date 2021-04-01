@@ -5,6 +5,7 @@ ENV PYTHONUNBUFFERED TRUE
 ARG tarball_name
 ARG requirements
 ARG setup
+ARG my_secret
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
@@ -36,9 +37,12 @@ COPY config.properties /home/model-server/config.properties
 WORKDIR /home/model-server
 ENV TEMP=/home/model-server/tmp
 ADD ${tarball_name}.tar.gz /home/model-server/code
+
+RUN pip install -e code/dynalab  # FIXME: pull from github once dynalab is open sourced
 RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -Ir code/requirements.txt; fi
 RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -Ie code; fi
 
 ENV PYTHONIOENCODING=UTF-8
+ENV MY_SECRET=${my_secret}
 ENTRYPOINT ["/usr/local/bin/dockerd-entrypoint.sh"]
 CMD ["serve"]
