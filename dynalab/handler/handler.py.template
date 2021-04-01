@@ -16,12 +16,12 @@ import sys
 import torch
 
 from dynalab.handler.base_handler import BaseDynaHandler
+from dynalab.tasks.{your_task} import TaskIO
 
 
-# NOTE: to import modules from your folder, use the following line;
-# in local test, comment it out
+# NOTE: use the following line to import modules from your repo
 sys.path.append("/home/model-server/code")
-import MyModel  # noqa isort:skip
+import MyModel
 
 
 class Handler(BaseDynaHandler):
@@ -93,17 +93,17 @@ class Handler(BaseDynaHandler):
         dynalab.tasks.{your_task}.TaskIO().verify_response(response)
         ```
         """
-        response = {}
-
+        response = dict()
+        example = self._read_data(data)
         # ############TODO 4: postprocess response ########
         """
         Add attributes to response
         """
-        response["id"] = self._read_data(data)["uid"]
+        response["id"] = example["uid"]
         response["label"] = inference_output > 0.5
         response["prob"] = inference_output
         # #################################################
-
+        response = TaskIO(example).sign_response(response)
         return [response]
 
 

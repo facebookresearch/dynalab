@@ -1,26 +1,28 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-from ts.torch_handler.base_handler import BaseHandler
+import uuid
 
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = {
-    "context": "Please pretend you a reviewing a place, " + "product, book or movie.",
-    "hypothesis": "It is a good day",
-    "target": 0,
-}
+data = {"uid": str(uuid.uuid4()), "context": "It is a good day"}
 
 
 class TaskIO(BaseTaskIO):
-    def __init__(self):
+    def __init__(self, data=data):
         BaseTaskIO.__init__(self, data)
 
     def verify_response(self, response):
-        # am example function here
-        assert "prob" in response
+        assert "id" in response and response["id"] == self.data["uid"]
+        assert "label" in response and response["label"] in {
+            "positive",
+            "negative",
+            "neutral",
+        }
+        assert response["signed"] == self.generate_response_signature(response)
 
-
-# To be filled
-class DynaHandler(BaseHandler):
-    pass
+    def parse_signature_input(self, response):
+        task = "sentiment"
+        inputs = {key: self.data[key] for key in ["context"]}
+        outputs = {key: response[key] for key in ["label"]}
+        return task, inputs, outputs

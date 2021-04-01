@@ -1,6 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 import os
-import shutil
 import subprocess
 
 from dynalab_cli import BaseCommand
@@ -281,9 +280,13 @@ class InitCommand(BaseCommand):
                 os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
                 "dynalab",
                 "handler",
-                "handler_template.py",
+                "handler.py.template",
             )
-            shutil.copy(template, filepath)
+            with open(template) as f:
+                content = f.read()
+                handler_content = content.format(your_task=self.config["task"])
+            with open(filepath, "w") as f:
+                f.write(handler_content)
         else:
             open(filepath, "w+").close()
         print(f"Created new {key} file at {printpath}")
