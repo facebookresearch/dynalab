@@ -50,7 +50,7 @@ class TestCommand(BaseCommand):
         for dentry in os.scandir("."):
             total_size += dentry.stat().st_size
         if config["exclude"]:
-            for f in config["exclude"].split(","):
+            for f in config["exclude"]:
                 total_size -= os.path.getsize(f)
         if total_size > MAX_SIZE:
             print(
@@ -66,18 +66,14 @@ class TestCommand(BaseCommand):
             os.makedirs(tmp_dir, exist_ok=True)
             # tarball everything
             print("Tarballing the project directory...")
-            with open(os.path.join(tmp_dir, "exclude.txt"), "w+") as f:
-                if config["exclude"]:
-                    for ex in config["exclude"].split(","):
-                        f.write(ex + "\n")
-                for m in os.listdir(".dynalab"):
-                    if m != self.args.name:
-                        f.write(os.path.join(".dynalab", m) + "\n")
-                f.write(tmp_dir)
+            exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
+            self.config_handler.write_exclude_filelist(
+                exclude_list_file, self.args.name, exclude_model=True
+            )
             process = subprocess.run(
                 [
                     "tar",
-                    f"--exclude-from={os.path.join(tmp_dir, 'exclude.txt')}",
+                    f"--exclude-from={exclude_list_file}",
                     "-czf",
                     os.path.join(tmp_dir, f"{self.args.name}.tar.gz"),
                     ".",
@@ -108,7 +104,7 @@ class TestCommand(BaseCommand):
                 tmp_dir,
             ]
             if config["model_files"]:
-                archive_command += ["--extra-files", config["model_files"]]
+                archive_command += ["--extra-files", ",".join(config["model_files"])]
             process = subprocess.run(
                 archive_command,
                 stdout=subprocess.PIPE,

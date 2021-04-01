@@ -206,7 +206,7 @@ class SetupConfigHandler:
         assert key in config, f"Missing config field {key}"
         excluded_files = set()
         if config[key]:
-            files = config[key].strip(", ").split(",")
+            files = config[key]
             for f in files:
                 assert check_path(
                     os.path.join(self.root_dir, f),
@@ -235,7 +235,7 @@ class SetupConfigHandler:
                     assert config[key].endswith(".py"), f"Handler must be a Python file"
             elif key == "model_files":
                 if config[key]:
-                    files = config[key].split(",")
+                    files = config[key]
                     for f in files:
                         assert check_path(
                             os.path.join(self.root_dir, f),
@@ -261,3 +261,29 @@ class SetupConfigHandler:
 
         for field in self.config_fields:
             assert field in contained_fields, f"Missing config field {key}"
+
+    def write_exclude_filelist(self, outfile, model_name, exclude_model=False):
+        config = self.load_config()
+        with open(outfile, "w") as f:
+            # all exclude files and folders
+            if config["exclude"]:
+                for ex in config["exclude"]:
+                    f.write(ex + "\n")
+
+            # tmp dir for test
+            tmp_dir = os.path.join(self.config_dir, "tmp")
+            if os.path.exists(os.path.join(self.root_dir, tmp_dir)):
+                f.write(tmp_dir + "\n")
+
+            # dir for other models
+            dynalab_dir = ".dynalab"
+            if os.path.exists(os.path.join(self.root_dir, dynalab_dir)):
+                for m in os.listdir(dynalab_dir):
+                    if m != model_name:
+                        f.write(m + "\n")
+
+            f.write(outfile + "\n")
+
+            if exclude_model:
+                f.write(config["checkpoint"] + "\n")
+                f.write(config["handler"] + "\n")
