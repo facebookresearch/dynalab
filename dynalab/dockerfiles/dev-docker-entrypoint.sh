@@ -34,7 +34,7 @@ if [ -z $response ]; then
     exit 1
 else
     echo Your model $model_name response is $response
-    python -c "from dynalab.tasks.${task} import TaskIO; taskIO = TaskIO(); taskIO.verify_response($response)" || exit 1
+    python -c "from dynalab.tasks.${task} import TaskIO; taskIO = TaskIO($data); taskIO.verify_response($response)" || exit 1
 fi
 
 exit 0
