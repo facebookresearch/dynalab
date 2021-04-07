@@ -133,6 +133,7 @@ class TestCommand(BaseCommand):
             )
 
             # build docker
+            repository_name = self.args.name.lower()
             print("Building docker image...")
             docker_build_args = [
                 "--build-arg",
@@ -150,7 +151,7 @@ class TestCommand(BaseCommand):
                 "--network",
                 "host",
                 "-t",
-                self.args.name,
+                repository_name,
                 "-f",
                 docker_path,
                 ".",
@@ -158,7 +159,7 @@ class TestCommand(BaseCommand):
 
             subprocess.run(docker_build_command)
             process = subprocess.run(
-                f"docker run {self.args.name}",
+                f"docker run {repository_name}",
                 shell=True,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
