@@ -31,7 +31,7 @@ For currently existing tasks, the output format is expected to be
 ```
 {
     "id": copy from input["uid"],
-    "label": "hate" | "nohate"
+    "label": "hate" | "nothate"
 }
 ```
 **sentiment**
