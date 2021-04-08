@@ -78,14 +78,14 @@ There may be a config file, or self-defined modules that you want to read or imp
    import my_model
    ```
    We recommend using this method to read files (e.g. configs, vocabularies) which is often flat-structured by its nature.
-2. If you do not want to flatten the file structure (e.g. there may be too many dependencies involved), you can also read these files directly from the path `/home/model-server/code/<relative_path_inside_your_root_folder` without adding them to the dynalab config. Suppose the file locations are the same as those specified above (`configs/model_config.json` and `src/my_model.py`), you will read the config by
+2. If you do not want to flatten the file structure (e.g. there may be too many dependencies involved), you do not need to add them to the dynalab config. First of all, notice there is a `ROOTPATH` variable available in your handler template. Suppose the file locations are the same as those specified above (`configs/model_config.json` and `src/my_model.py`), you will read the config by
    ```
-   config = json.load("/home/model-server/code/configs/model_config.json")
+   config = json.load(os.path.join(ROOTPATH, "configs", "model_config.json"))
    ```
    and import the module by
    ```
    import sys
-   sys.path.append("/home/model-server/code")
+   sys.path.append(ROOTPATH) # you can uncomment this line in the handler template
    from src import my_model
    ```
    We recommend using this method for importing self-defined modules.

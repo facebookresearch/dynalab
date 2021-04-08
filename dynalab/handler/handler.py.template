@@ -15,12 +15,12 @@ import sys
 
 import torch
 
-from dynalab.handler.base_handler import BaseDynaHandler
+from dynalab.handler.base_handler import BaseDynaHandler, ROOTPATH
 from dynalab.tasks.{your_task} import TaskIO
 
 
 # NOTE: use the following line to import modules from your repo
-sys.path.append("/home/model-server/code")
+sys.path.append(ROOTPATH)
 import MyModel
 
 
