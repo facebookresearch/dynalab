@@ -245,6 +245,7 @@ class InitCommand(BaseCommand):
                 f"No {key} path specified. You can "
                 f"provide paths by using dynalab-cli init --amend"
             )
+            value = []
         else:
             missing = self.missing_file(key, value.strip(", ").split(","))
             while missing:
@@ -263,7 +264,7 @@ class InitCommand(BaseCommand):
                 get_path_inside_rootdir(f, root_dir=self.root_dir)
                 for f in value.strip(", ").split(",")
             ]
-            value = ",".join([f for f in files if f])
+            value = [f for f in files if f]
         self.update_field(key, value)
 
     def create_file(self, key):
