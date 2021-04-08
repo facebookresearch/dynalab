@@ -29,17 +29,15 @@ class Handler(BaseDynaHandler):
         """
         load model and extra files
         """
-        model_pt_path, extra_file_dir, device = self._handler_initialize(context)
+        model_pt_path, model_file_dir, device = self._handler_initialize(context)
 
         # ############TODO 1: Initialize model ############
         """
         Load model and read relevant files here.
-        Your extra files can be read from os.path.join(extra_file_dir, file_name).
         """
         config = json.load(
-            os.path.join(extra_file_dir, "config")
-        )  # NOTE: in local test, set extra_file_dir to your actual extra file dir
-
+            os.path.join(model_file_dir, "config")
+        )
         self.model = MyModel(config)
         self.model.load_state_dict(torch.load(model_pt_path, map_location="cpu"))
         self.model.to(device)
