@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 ENV PYTHONUNBUFFERED TRUE
 
-ARG tarball_name
+ARG tarball
 ARG requirements
 ARG setup
 ARG my_secret
@@ -36,7 +36,7 @@ COPY config.properties /home/model-server/config.properties
 
 WORKDIR /home/model-server
 ENV TEMP=/home/model-server/tmp
-ADD ${tarball_name}.tar.gz /home/model-server/code
+ADD ${tarball} /home/model-server/code
 
 RUN pip install -e code/dynalab  # FIXME: pull from github once dynalab is open sourced
 RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -Ir code/requirements.txt; fi
