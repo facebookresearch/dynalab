@@ -3,7 +3,9 @@ Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you
 ## Installation
 
 ```
-pip install dynalab
+git clone https://github.com/facebookresearch/dynalab.git
+cd dynalab
+pip install -e .
 ```
 
 You will also need to install [docker](https://www.docker.com/products/docker-desktop).
@@ -19,6 +21,11 @@ $ dynalab-cli init -n <name_of_your_model>
 Follow the prompts to configure this folder. You can find more information about the config of files by running `dynalab-cli init -h`. **Make sure that all files you specified on initialization are physically inside this project folder, e.g. not soft linked from elsewhere**, otherwise your may encounter errors later, and your model deployment may fail. You should assume no external internet access from the docker.
 
 **From now on, you should always run `dynalab-cli` from the root path, otherwise it will get confused and you may see weird errors.**
+
+**Beta testing: please copy the `dynalab` directory into your root path**
+```
+cp -r dynalab /path/to/fancy_project
+```
 
 ### Step 2: Complete the model handler
 If you don't already have a handler file, we will have created a [template](https://github.com/facebookresearch/dynalab/blob/master/dynalab/handler/handler.py.template) for you with instructions to fill at `./handler.py`. The handler file defines how your model takes inputs, run inference and return response. Follow the instructions in the template file to complete the handler.
