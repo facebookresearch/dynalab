@@ -28,16 +28,16 @@ cp -r dynalab /path/to/fancy_project
 ```
 
 ### Step 2: Complete the model handler
-If you don't already have a handler file, we will have created a [template](https://github.com/facebookresearch/dynalab/blob/master/dynalab/handler/handler.py.template) for you with instructions to fill at `./handler.py`. The handler file defines how your model takes inputs, run inference and return response. Follow the instructions in the template file to complete the handler.
+If you don't already have a handler file, we will have created a [template](https://github.com/facebookresearch/dynalab/blob/master/dynalab/handler/handler.py.template) for you with instructions to fill at `./handler.py`. The handler file defines how your model takes inputs, runs inference and returns a response. Follow the instructions in the template file to complete the handler.
 
 For the expected model I/O format of your task, check the definitions [here](dynalab/tasks/README.md).
 
-### Step 3: Quickly check code correctness by local test
+### Step 3: Quickly check correctness by local test
 Now that you completed the handler file, run a local test to see if your code works correctly.
 ```
 $ dynalab-cli test --local -n <name_of_your_model>
 ```
-If your local test is successful, you'll see "Local test passed" on the prompt. You can then move on to the next step. Otherwise, fix the code according to the error prompt and re-run this step until the output is error free.
+If your local test is successful, you'll see "Local test passed" on the prompt. You can then move on to the next step. Otherwise, fix your project according to the error prompt and re-run this step until the output is error free.
 
 **Exclude large files / folders**
 You may get an error if your project folder is too big (e.g. more than 2GB). You can reduce its size by excluding files / folders that are not relevant to your model (e.g. unused checkpoints). To do this, add the paths to the files / folders that you want to exclude into the config by running `dynalab-cli init -n <name_of_your_model> --amend` and update the `exclude` entry, e.g.
@@ -70,7 +70,7 @@ torch==1.7.1
 
 **Extra model files**
 There may be a config file, or self-defined modules that you want to read or import in your handler. There are two ways to do this.
-1. Include these files in the dynalab config and read / import them directly without worrying about paths. This also means that all file structure will be flattented. Firstly, run `dynalab-cli init -n <name_of_your_model> --amend` and fill the `model_files` list with the list of file paths inside the root directory, e.g.
+1. Include these files in the dynalab config and read / import them directly without worrying about paths. This also means that all file structure will be flattened. Firstly, run `dynalab-cli init -n <name_of_your_model> --amend` and fill the `model_files` list with the list of file paths inside the root directory, e.g.
    ```
    {
        "model_files": ["configs/model_config.json", "src/my_model.py"]
