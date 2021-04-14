@@ -15,12 +15,12 @@ import sys
 
 import torch
 
-from dynalab.handler.base_handler import BaseDynaHandler
+from dynalab.handler.base_handler import BaseDynaHandler, ROOTPATH
 from dynalab.tasks.{your_task} import TaskIO
 
 
 # NOTE: use the following line to import modules from your repo
-sys.path.append("/home/model-server/code")
+sys.path.append(ROOTPATH)
 import MyModel
 
 
@@ -29,17 +29,15 @@ class Handler(BaseDynaHandler):
         """
         load model and extra files
         """
-        model_pt_path, extra_file_dir, device = self._handler_initialize(context)
+        model_pt_path, model_file_dir, device = self._handler_initialize(context)
 
         # ############TODO 1: Initialize model ############
         """
         Load model and read relevant files here.
-        Your extra files can be read from os.path.join(extra_file_dir, file_name).
         """
         config = json.load(
-            os.path.join(extra_file_dir, "config")
-        )  # NOTE: in local test, set extra_file_dir to your actual extra file dir
-
+            os.path.join(model_file_dir, "config")
+        )
         self.model = MyModel(config)
         self.model.load_state_dict(torch.load(model_pt_path, map_location="cpu"))
         self.model.to(device)
