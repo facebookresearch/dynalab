@@ -8,7 +8,7 @@ cd dynalab
 pip install -e .
 ```
 
-You will also need to install [docker](https://www.docker.com/products/docker-desktop).
+You will also need to install [docker](https://docs.docker.com/get-docker/).
 
 ## Model submission workflow
 
