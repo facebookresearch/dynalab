@@ -12,6 +12,12 @@ You will also need to install [docker](https://docs.docker.com/get-docker/).
 
 ## Model submission workflow
 
+**Beta testing: please overwrite your [config file](dynalab/config.py) with
+```
+DYNABENCH_API = "https://dev.dynabench.org:8081"
+DYNABENCH_WEB = "https://dev.dynabench.org"
+```
+
 ### Step 1: Initialize the project folder
 Run the following command to initialize your project folder for model upload:
 ```
