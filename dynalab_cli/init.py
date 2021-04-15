@@ -13,9 +13,6 @@ from dynalab_cli.utils import (
 )
 
 
-TASKS_AVAILABLE = get_tasks()
-
-
 class InitCommand(BaseCommand):
     @staticmethod
     def add_args(parser):
@@ -38,7 +35,7 @@ class InitCommand(BaseCommand):
             ),
         )
         init_parser.add_argument(
-            "-t", "--task", type=str, choices=TASKS_AVAILABLE, help="Name of the task"
+            "-t", "--task", type=str, choices=get_tasks(), help="Name of the task"
         )
         init_parser.add_argument(
             "-d",
@@ -170,10 +167,11 @@ class InitCommand(BaseCommand):
             raise NotImplementedError(f"{key} not supported in setup_config")
 
     def initialize_task(self, key, value):
-        while value not in TASKS_AVAILABLE:
+        tasks = get_tasks()
+        while value not in tasks:
             message = (
                 f"Please choose a valid task name from one of "
-                f"[{', '.join(TASKS_AVAILABLE)}]: "
+                f"[{', '.join(tasks)}]: "
             )
             value = input(message)
         self.update_field(key, value)
