@@ -6,7 +6,7 @@ from dynalab.tasks.common import BaseTaskIO
 
 
 data = {
-    "uid": str(uuid.uuid(4)),
+    "uid": str(uuid.uuid4()),
     "context": "Please pretend you are reviewing a place, " + "product, book or movie",
     "question": "What should i pretend?",
 }
