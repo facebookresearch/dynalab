@@ -155,7 +155,7 @@ class TestCommand(BaseCommand):
 
             subprocess.run(docker_build_command)
             process = subprocess.run(
-                f"docker run {repository_name}",
+                f"docker run --network none {repository_name}",
                 shell=True,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
