@@ -12,7 +12,7 @@ You will also need to install [docker](https://docs.docker.com/get-docker/).
 
 ## Model submission workflow
 
-**Beta testing: please overwrite your [config file](dynalab/config.py) with
+**Beta testing: please overwrite your [config file](dynalab/config.py) with**
 ```
 DYNABENCH_API = "https://dev.dynabench.org:8081"
 DYNABENCH_WEB = "https://dev.dynabench.org"
