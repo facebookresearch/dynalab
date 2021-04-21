@@ -20,7 +20,7 @@ while [[ $status != Healthy ]]; do
         echo "Serving model failed."
         exit 1
     fi
-    sleep 10
+    sleep 30
     status=$(curl -s http://localhost:8080/ping | python -c "import json, sys; obj=json.load(sys.stdin);print(obj['status'])") || exit 1
 done
 echo "Health ping passed. Start model inference..."
@@ -31,8 +31,8 @@ echo Input test data is $data
 response=$(curl http://127.0.0.1:8080/predictions/$model_name --header "Content-Type: application/json" --data "$data" --request POST --fail)
 retries=0
 while [[ -z $response ]] && [[ $retries -le 3 ]]; do
-    retries=$(($retries+1))
     echo "Model $model_name failed to respond. Retry in 30s [$retries / 3]"
+    retries=$(($retries+1))
     sleep 30
     response=$(curl http://127.0.0.1:8080/predictions/$model_name --header "Content-Type: application/json" --data "$data" --request POST --fail)
 done
