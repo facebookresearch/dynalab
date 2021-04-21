@@ -154,8 +154,9 @@ class TestCommand(BaseCommand):
             ] + docker_build_args
 
             subprocess.run(docker_build_command)
+            # NOTE: cpu and memory limit are specific to ml.m5.xlarge
             process = subprocess.run(
-                f"docker run --network none {repository_name}",
+                f"docker run --network none --cpus 4 --memory 16G {repository_name}",
                 shell=True,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
