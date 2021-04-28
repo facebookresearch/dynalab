@@ -13,20 +13,20 @@ RUN apt-get update && \
     ca-certificates \
     dpkg-dev \
     g++ \
-    python3-dev \
+    python3.6-dev \
+    python3-pip \
     openjdk-11-jdk \
     curl \
     vim \
-    && rm -rf /var/lib/apt/lists/* \
-    && cd /tmp \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+RUN cd /tmp \
     && curl -O https://bootstrap.pypa.io/get-pip.py \
     && python3 get-pip.py
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
-RUN update-alternatives --install /usr/local/bin/pip pip /usr/local/bin/pip3 1
-
-RUN pip install --no-cache-dir torchserve
-RUN pip install --no-cache-dir torch==1.7.1
+RUN python -m pip install --no-cache-dir torchserve
+RUN python -m pip install --no-cache-dir torch==1.7.1
 
 COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
@@ -34,13 +34,13 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 RUN mkdir -p /home/model-server/ && mkdir -p /home/model-server/tmp
 COPY config.properties /home/model-server/config.properties
 
-WORKDIR /home/model-server
 ENV TEMP=/home/model-server/tmp
 ADD ${tarball} /home/model-server/code
+WORKDIR /home/model-server/code
 
-RUN pip install -e code/dynalab  # FIXME: pull from github once dynalab is open sourced
-RUN if [ -f code/requirements.txt ] && [ ${requirements} = True ]; then pip install --no-cache-dir -Ir code/requirements.txt; fi
-RUN if [ -f code/setup.py ] && [ ${setup} = True ]; then pip install --no-cache-dir -Ie code; fi
+RUN python -m pip install -e dynalab  # FIXME: pull from github once dynalab is open sourced
+RUN if [ -f requirements.txt ] && [ ${requirements} = True ]; then python -m pip install --no-cache-dir -Ir requirements.txt; fi
+RUN if [ -f setup.py ] && [ ${setup} = True ]; then python -m pip install --no-cache-dir -Ie code; fi
 
 ENV PYTHONIOENCODING=UTF-8
 ENV MY_SECRET=${my_secret}
