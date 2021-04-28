@@ -1,6 +1,7 @@
 ## What is Dynalab?
 Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you want to share your amazing results on the [Dynabench](www.dynabench.org) model leaderboard. Dynalab makes it easy for you to do just that.
 ## Installation
+Dynalab only works on Python 3.6+.
 
 ```
 git clone https://github.com/facebookresearch/dynalab.git
@@ -55,7 +56,7 @@ You may get an error if your project folder is too big (e.g. more than 2GB). You
 Remember not to exclude files / folders that are used by your model.
 
 ### Step 4: Check dependencies by integrated test
-The integrated test will run the test inside a mock docker container to simulate the deployment environment. It may take some time to download dependencies in the docker.
+The integrated test will run the test inside a mock docker container to simulate the deployment environment, which is on Ubuntu 18.04 and uses Python 3.6 (see [dockerfile](dynalab/dockerfiles/prod/Dockerfile) for detailed version information). It may take some time to download dependencies in the docker.
 ```
 $ dynalab-cli test -n <name_of_your_model>
 ```
