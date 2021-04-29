@@ -1,5 +1,5 @@
 ## What is Dynalab?
-Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you want to share your amazing results on the [Dynabench](www.dynabench.org) model leaderboard. Dynalab makes it easy for you to do just that.
+Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you want to share your amazing results on the [Dynabench](https://www.dynabench.org) model leaderboard. Dynalab makes it easy for you to do just that.
 ## Installation
 Dynalab only works on Python 3.6+.
 
@@ -110,7 +110,7 @@ You will first need to log in by running
 ```
 $ dynalab-cli login
 ```
-You will be taken to the [Dynabench](www.dynabench.org) website where you'll see an API token (you'll be asked to log in there if you haven't). Click the "Copy" button on the webpage and paste that back in the terminal prompt.
+You will be taken to the [Dynabench](https://www.dynabench.org) website where you'll see an API token (you'll be asked to log in there if you haven't). Click the "Copy" button on the webpage and paste that back in the terminal prompt.
 
 To upload your model, run
 ```
