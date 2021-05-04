@@ -24,27 +24,31 @@ For currently existing tasks, the output format is expected to be
 ```
 {
     "id": copy from input["uid"],
-    "label": "c" | "e" | "n"
+    "label": "c" | "e" | "n",
+    "prob": {"c": 0.2, "e": 0.6, "n": 0.2} # a dictionary of probabilities (0~1) for each label, will be normalized on our side
 }
 ```
 **hs**
 ```
 {
     "id": copy from input["uid"],
-    "label": "hate" | "nothate"
+    "label": "hate" | "nothate",
+    "prob": {"hate": 0.2, "nothate": 0.8} # a dictionary of probabilities (0~1) for each label, will be normalized on our side
 }
 ```
 **sentiment**
 ```
 {
     "id": copy from input["uid"],
-    "label": "positive" | "negative" | "neutral"
+    "label": "positive" | "negative" | "neutral",
+    "prob": {"positive": 0.2, "negative": 0.6, "neutral": 0.2} # a dictionary of probabilities (0~1) for each label, will be normalized on our side
 }
 ```
 **qa**
 ```
 {
     "id": copy from input["uid"],
-    "answer": the answer string extracted from input["context"]
+    "answer": the answer string extracted from input["context"],
+    "confidence": <a float between 0 and 1> # the model's confidence score of the given answer; a recommended way of computing this is the product of the starting and end index, obtained by softmax across all starting and end index respectively
 }
 ```
