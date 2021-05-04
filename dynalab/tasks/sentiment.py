@@ -48,6 +48,7 @@ class TaskIO(BaseTaskIO):
             assert (
                 prob[key] >= 0 and prob[key] <= 1
             ), f"Probability for label {key} should be between 0 and 1"
+        return True
 
     def parse_signature_input(self, response):
         task = "sentiment"

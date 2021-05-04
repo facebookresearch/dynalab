@@ -49,6 +49,6 @@ For currently existing tasks, the output format is expected to be
 {
     "id": copy from input["uid"],
     "answer": the answer string extracted from input["context"],
-    "confidence": <a float between 0 and 1> # the model's confidence score of the given answer; a recommended way of computing this is the product of the starting and end index, obtained by softmax across all starting and end index respectively
+    "conf": <a float between 0 and 1> # the model's confidence score of the given answer; a recommended way of computing this is the product of the starting and end index, obtained by softmax across all starting and end index respectively
 }
 ```
