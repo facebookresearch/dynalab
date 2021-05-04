@@ -7,6 +7,7 @@ to watch out for:
 - TODO blocks: you need to fill or modify these according to the instructions.
    The code in these blocks are for demo purpose only and they may not work.
 - NOTE inline comments: remember to follow these instructions to pass the test.
+For expected task I/O, please check dynalab/tasks/README.md
 """
 
 import json
