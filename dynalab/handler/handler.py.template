@@ -59,7 +59,7 @@ class Handler(BaseDynaHandler):
         You can extract the key and values from the input data like below
         example is a always json object. Yo can see what an example looks like by
         ```
-        dynalab.tasks.{your_task}.TaskIO().get_input_json()
+        dynalab.tasks.{your_task}.data[0]
         ```
         """
         context = example["context"]
@@ -90,7 +90,7 @@ class Handler(BaseDynaHandler):
         response should be a single element list of a json
         the response format will need to pass the validation in
         ```
-        dynalab.tasks.{your_task}.TaskIO().verify_response(response)
+        dynalab.tasks.{your_task}.TaskIO().verify_response(response, data)
         ```
         """
         response = dict()

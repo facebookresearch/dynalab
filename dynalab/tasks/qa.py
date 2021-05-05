@@ -30,7 +30,7 @@ class TaskIO(BaseTaskIO):
         }
         """
         assert "id" in response and response["id"] == data["uid"]
-        assert "answer" in response and response["answer"] in self.data["context"]
+        assert "answer" in response and response["answer"] in data["context"]
         assert response["signed"] == self.generate_response_signature(response, data)
         Nk = 3
         if "conf" in response:
