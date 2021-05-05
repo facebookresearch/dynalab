@@ -5,18 +5,18 @@ import uuid
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = {
+data = [{
     "uid": str(uuid.uuid4()),
     "context": "Please pretend you are reviewing a place, " + "product, book or movie",
     "question": "What should i pretend?",
-}
+}]
 
 
 class TaskIO(BaseTaskIO):
-    def __init__(self, data=data):
-        BaseTaskIO.__init__(self, data)
+    def __init__(self):
+        BaseTaskIO.__init__(self)
 
-    def verify_response(self, response):
+    def verify_response(self, response, data):
         """
         Expected response format:
         {
@@ -29,9 +29,9 @@ class TaskIO(BaseTaskIO):
             span end logits
         }
         """
-        assert "id" in response and response["id"] == self.data["uid"]
+        assert "id" in response and response["id"] == data["uid"]
         assert "answer" in response and response["answer"] in self.data["context"]
-        assert response["signed"] == self.generate_response_signature(response)
+        assert response["signed"] == self.generate_response_signature(response, data)
         Nk = 3
         if "conf" in response:
             assert (
@@ -40,8 +40,8 @@ class TaskIO(BaseTaskIO):
             Nk += 1
         assert Nk == len(response), f"response should not contain other extra keys"
 
-    def parse_signature_input(self, response):
+    def parse_signature_input(self, response, data):
         task = "qa"
-        inputs = {key: self.data[key] for key in ["context", "question"]}
+        inputs = {key: data[key] for key in ["context", "question"]}
         outputs = {key: response[key] for key in ["answer"]}
         return task, inputs, outputs

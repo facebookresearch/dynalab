@@ -26,24 +26,5 @@ done
 echo "Health ping passed. Start model inference..."
 
 # test the model endpoint, consider moving all these into a python script in the future?
-data=$(python -c "from dynalab.tasks.${task} import TaskIO; taskIO = TaskIO(); print(taskIO.get_input_json_single())")
-echo Input test data is $data
-response=$(curl http://127.0.0.1:8080/predictions/$model_name --header "Content-Type: application/json" --data "$data" --request POST --fail)
-retries=0
-while [[ -z $response ]] && [[ $retries -le 3 ]]; do
-    echo "Model $model_name failed to respond. Retry in 30s [$retries / 3]"
-    retries=$(($retries+1))
-    sleep 30
-    response=$(curl http://127.0.0.1:8080/predictions/$model_name --header "Content-Type: application/json" --data "$data" --request POST --fail)
-done
-
-if [[ -z $response ]]; then
-    ex=$(curl http://127.0.0.1:8080/predictions/$model_name --header "Content-Type: application/json" --data "$data" --request POST)
-    echo "The exception message from $model_name is $ex"
-    exit 1
-else
-    echo "Your model $model_name response is $response"
-    python -c "from dynalab.tasks.${task} import TaskIO; taskIO = TaskIO($data); taskIO.verify_response($response)" || exit 1
-fi
-
-exit 0
+endpoint_url="http://127.0.0.1:8080/predictions/$model_name"
+python -c "import sys; from dynalab.tasks.${task} import TaskIO, data; TaskIO().test_endpoint_individually(sys.argv[1], data)" $endpoint_url

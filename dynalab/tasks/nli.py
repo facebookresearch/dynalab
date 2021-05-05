@@ -5,7 +5,7 @@ import uuid
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = {
+data = [{
     "uid": str(uuid.uuid4()),
     "context": "Old Trafford is a football stadium "
     + " in Old Trafford, "
@@ -19,14 +19,14 @@ data = {
     "hypothesis": "There is no club football stadium in "
     + "England larger "
     + "than the one in Manchester.",
-}
+}]
 
 
 class TaskIO(BaseTaskIO):
-    def __init__(self, data=data):
-        BaseTaskIO.__init__(self, data)
+    def __init__(self):
+        BaseTaskIO.__init__(self)
 
-    def verify_response(self, response):
+    def verify_response(self, response, data):
         """
         Expected response format:
         {
@@ -37,9 +37,9 @@ class TaskIO(BaseTaskIO):
         }
         """
         # required keys
-        assert "id" in response and response["id"] == self.data["uid"]
+        assert "id" in response and response["id"] == data["uid"]
         assert "label" in response and response["label"] in {"c", "e", "n"}
-        assert response["signed"] == self.generate_response_signature(response)
+        assert response["signed"] == self.generate_response_signature(response, data)
         Nk = 3
         # optional keys
         if "prob" in response:
@@ -61,8 +61,8 @@ class TaskIO(BaseTaskIO):
             ), f"Probability for label {key} should be between 0 and 1"
         return True
 
-    def parse_signature_input(self, response):
+    def parse_signature_input(self, response, data):
         task = "nli"
-        inputs = {key: self.data[key] for key in ["context", "hypothesis"]}
+        inputs = {key: data[key] for key in ["context", "hypothesis"]}
         outputs = {key: response[key] for key in ["label"]}
         return task, inputs, outputs

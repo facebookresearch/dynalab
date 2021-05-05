@@ -31,6 +31,7 @@ class Handler(BaseDynaHandler):
         load model and extra files
         """
         model_pt_path, model_file_dir, device = self._handler_initialize(context)
+        self.taskIO = TaskIO()
 
         # ############TODO 1: Initialize model ############
         """
@@ -102,7 +103,7 @@ class Handler(BaseDynaHandler):
         response["label"] = inference_output > 0.5
         response["prob"] = inference_output
         # #################################################
-        response = TaskIO(example).sign_response(response)
+        response = self.taskIO.sign_response(response, example)
         return [response]
 
 

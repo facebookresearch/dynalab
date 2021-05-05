@@ -198,8 +198,9 @@ class TestCommand(BaseCommand):
 
         # load taskIO
         taskIO = importlib.import_module(f"dynalab.tasks.{config['task']}").TaskIO()
+        mock_data = importlib.import_module(f"dynalab.tasks.{config['task']}").data
         try:
-            taskIO.mock_handle_single(self.args.name, handler.handle)
+            taskIO.mock_handle_individually(self.args.name, mock_data, handler.handle)
         except Exception as e:
             raise RuntimeError(f"Local test failed because of: {e}")
         else:

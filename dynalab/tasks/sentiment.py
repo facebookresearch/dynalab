@@ -5,14 +5,14 @@ import uuid
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = {"uid": str(uuid.uuid4()), "statement": "It is a good day"}
+data = [{"uid": str(uuid.uuid4()), "statement": "It is a good day"}]
 
 
 class TaskIO(BaseTaskIO):
-    def __init__(self, data=data):
-        BaseTaskIO.__init__(self, data)
+    def __init__(self):
+        BaseTaskIO.__init__(self)
 
-    def verify_response(self, response):
+    def verify_response(self, response, data):
         """
         Expected response format:
         {
@@ -24,13 +24,13 @@ class TaskIO(BaseTaskIO):
         }
         """
         # required keys
-        assert "id" in response and response["id"] == self.data["uid"]
+        assert "id" in response and response["id"] == data["uid"]
         assert "label" in response and response["label"] in {
             "positive",
             "negative",
             "neutral",
         }
-        assert response["signed"] == self.generate_response_signature(response)
+        assert response["signed"] == self.generate_response_signature(response, data)
         Nk = 3
         # optional keys
         if "prob" in response:
@@ -56,8 +56,8 @@ class TaskIO(BaseTaskIO):
             ), f"Probability for label {key} should be between 0 and 1"
         return True
 
-    def parse_signature_input(self, response):
+    def parse_signature_input(self, response, data):
         task = "sentiment"
-        inputs = {key: self.data[key] for key in ["statement"]}
+        inputs = {key: data[key] for key in ["statement"]}
         outputs = {key: response[key] for key in ["label"]}
         return task, inputs, outputs
