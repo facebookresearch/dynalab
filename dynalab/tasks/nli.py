@@ -27,11 +27,11 @@ data = [
         + "from j?\u00a1quima; mustang from mestengo",
         "hypothesis": "See how it works",
     },
-    # {
-    #     "uid": str(uuid.uuid4()),
-    #     "context": " ".join([str(x) + "_" for x in range(513)]),
-    #     "hypothesis": "Hope you can handle this length",
-    # },
+    {
+        "uid": str(uuid.uuid4()),
+        "context": " ".join([str(x) + "_" for x in range(513)]),
+        "hypothesis": "Hope you can handle this length",
+    },
 ]
 
 

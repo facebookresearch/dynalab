@@ -25,7 +25,7 @@ while [[ $status != Healthy ]]; do
         status=$(curl -s http://localhost:8080/ping)
     else 
         status=$(python -c "import json; print($status['status'])")
-        if [[ $status = Unhealthy ]] || [[ $status == "Partial Healthy" ]]; then
+        if [[ $status = Unhealthy ]]; then
             echo "Serving model failed."
             exit 1
         fi
