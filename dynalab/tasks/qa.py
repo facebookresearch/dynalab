@@ -19,7 +19,7 @@ data = [
     },
     {
         "uid": str(uuid.uuid4()),
-        "context": " ".join([str(x) for x in range(513)]),
+        "context": " ".join([str(x) + "_" for x in range(513)]),
         "question": "Can you handle this length?",
     },
 ]

@@ -11,7 +11,10 @@ data = [
         "uid": str(uuid.uuid4()),
         "statement": "Let's try a utf-8 like hackamore from j?\u00a1quima;",
     },
-    {"uid": str(uuid.uuid4()), "statement": " ".join([str(x) for x in range(513)])},
+    {
+        "uid": str(uuid.uuid4()),
+        "statement": " ".join([str(x) + "_" for x in range(513)]),
+    },
 ]
 
 
