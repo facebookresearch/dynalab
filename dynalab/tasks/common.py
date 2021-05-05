@@ -16,7 +16,7 @@ class BaseTaskIO(ABC):
     def __init__(self, data):
         self.data = data
 
-    def get_input_json(self):
+    def get_input_json_single(self):
         # for sending data to a serving model
         # task owner can override if there is
         # e.g. more than one input test data
@@ -38,37 +38,17 @@ class BaseTaskIO(ABC):
         )
         return context
 
-    def _get_mock_input_data(self):
-        return [{"body": self.data}]
-
-    def get_mock_input(self, model_name):
-        # Task owner can choose to override this function
-        # e.g. if they have more than one input test data
-        context = self._get_mock_context(model_name)
-        data = self._get_mock_input_data()
-        return data, context
-
-    def show_mock_input_data(self):
-        # Task owner can choose to override this function
-        # e.g. if they have more than one input test data
-        print(f"Mock input data is: ", self._get_mock_input_data())
-
-    def mock_handle(self, handle_func, mock_data, mock_context):
-        # Task owner can choose to override this function
-        # e.g. if they have more than one input test data
+    def mock_handle_single(self, model_name, handle_func):
+        mock_context = self._get_mock_context(model_name)
+        print(f"Obtaining test input data ...")
+        mock_data = [{"body": self.data}]
+        print(f"Mock input data is: ", mock_data)
+        print("Getting model response ...")
         response = handle_func(mock_data, mock_context)
-        return response
-
-    def show_model_response(self, response):
-        # Task owner can choose to override this function
-        # e.g. if they have more than one input test data
         print(f"Your model response is {response}")
-
-    def verify_mock_response(self, response):
-        # mock response is normally a list
-        # task owner can override this function if there
-        # is e.g. more than one input test data
+        print(f"Verifying model response ...")
         self.verify_response(response[0])
+        return response
 
     def generate_response_signature(self, response, secret=""):
         """
