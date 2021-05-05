@@ -30,13 +30,12 @@ class TaskIO(BaseTaskIO):
         """
         assert "id" in response and response["id"] == self.data["uid"]
         assert "answer" in response and response["answer"] in self.data["context"]
-        assert (
-            "conf" in response
-            and response["conf"] >= 0
-            and response["conf"] <= 1
-        ), "Confidence score should be between 0 and 1"
         assert response["signed"] == self.generate_response_signature(response)
-        assert len(response) == 4, f"response should not contain other extra keys"
+        Nk = 3
+        if "conf" in response:
+            assert response["conf"] >= 0 and response["conf"] <= 1, "Confidence score should be between 0 and 1"
+            Nk += 1
+        assert Nk == len(response), f"response should not contain other extra keys"
 
     def parse_signature_input(self, response):
         task = "qa"

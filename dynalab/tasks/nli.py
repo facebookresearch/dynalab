@@ -36,11 +36,16 @@ class TaskIO(BaseTaskIO):
             (0~1) for each label, will be normalized on our side
         }
         """
+        # required keys
         assert "id" in response and response["id"] == self.data["uid"]
         assert "label" in response and response["label"] in {"c", "e", "n"}
-        assert "prob" in response and self._verify_prob(response["prob"])
         assert response["signed"] == self.generate_response_signature(response)
-        assert len(response) == 4, f"response should not contain other extra keys"
+        Nk = 3
+        # optional keys 
+        if "prob" in response:
+            assert self._verify_prob(response["prob"])
+            Nk += 1
+        assert Nk == len(response), f"response should not contain other extra keys"
 
     def _verify_prob(self, prob):
         error_message = (
