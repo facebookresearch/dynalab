@@ -5,10 +5,10 @@ import json
 import os
 from abc import ABC, abstractmethod
 
+import requests
 from ts.context import Context
 
 from dynalab_cli.utils import SetupConfigHandler
-import requests
 
 
 class BaseTaskIO(ABC):
@@ -17,7 +17,9 @@ class BaseTaskIO(ABC):
     def __init__(self):
         pass
 
-    def mock_handle_individually(self, model_name:str, mock_datapoints:list, handle_func):
+    def mock_handle_individually(
+        self, model_name: str, mock_datapoints: list, handle_func
+    ):
         def _get_mock_context(model_name):
             config_handler = SetupConfigHandler(model_name)
             config = config_handler.load_config()
@@ -33,6 +35,7 @@ class BaseTaskIO(ABC):
                 mms_version=None,
             )
             return context
+
         mock_context = _get_mock_context(model_name)
         N = len(mock_datapoints)
         for i, data in enumerate(mock_datapoints):
@@ -50,8 +53,12 @@ class BaseTaskIO(ABC):
         for i, data in enumerate(json_datapoints):
             print(f"Test data {i+1} / {N}")
             print("Test input data: ", data)
-            r = requests.post(endpoint_url, data=json.dumps(data), headers={"Content-Type": "application/json"})
-            try: 
+            r = requests.post(
+                endpoint_url,
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"},
+            )
+            try:
                 r.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 print("Inference failed")

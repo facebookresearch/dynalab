@@ -5,7 +5,13 @@ import uuid
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = [{"uid": str(uuid.uuid4()), "statement": "It is a good day"}]
+data = [
+    {"uid": str(uuid.uuid4()), "statement": "It is a good day"},
+    {
+        "uid": str(uuid.uuid4()),
+        "statement": "Let's try a utf-8 like hackamore from j?\u00a1quima;",
+    },
+]
 
 
 class TaskIO(BaseTaskIO):

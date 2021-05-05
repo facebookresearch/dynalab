@@ -5,21 +5,29 @@ import uuid
 from dynalab.tasks.common import BaseTaskIO
 
 
-data = [{
-    "uid": str(uuid.uuid4()),
-    "context": "Old Trafford is a football stadium "
-    + " in Old Trafford, "
-    + "Greater Manchester, England, and the home of "
-    + "Manchester United. "
-    + "With a capacity of 75,643, it is the largest club football "
-    + "stadium in the United Kingdom, the second-largest football "
-    + "stadium, and the eleventh-largest in Europe. "
-    + "It is about 0.5 mi from Old Trafford Cricket Ground"
-    + " and the adjacent tram stop.",
-    "hypothesis": "There is no club football stadium in "
-    + "England larger "
-    + "than the one in Manchester.",
-}]
+data = [
+    {
+        "uid": str(uuid.uuid4()),
+        "context": "Old Trafford is a football stadium "
+        + " in Old Trafford, "
+        + "Greater Manchester, England, and the home of "
+        + "Manchester United. "
+        + "With a capacity of 75,643, it is the largest club football "
+        + "stadium in the United Kingdom, the second-largest football "
+        + "stadium, and the eleventh-largest in Europe. "
+        + "It is about 0.5 mi from Old Trafford Cricket Ground"
+        + " and the adjacent tram stop.",
+        "hypothesis": "There is no club football stadium in "
+        + "England larger "
+        + "than the one in Manchester.",
+    },
+    {
+        "uid": str(uuid.uuid4()),
+        "context": "Another test point with utf-8, hackamore "
+        + "from j?\u00a1quima; mustang from mestengo",
+        "hypothesis": "See how it works",
+    },
+]
 
 
 class TaskIO(BaseTaskIO):
