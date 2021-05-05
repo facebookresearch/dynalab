@@ -98,6 +98,12 @@ class InitCommand(BaseCommand):
             "--amend", action="store_true", help="Update the config"
         )
 
+        init_parser.add_argument(
+            "--rename",
+            type=model_name_type,
+            help="Rename an existing model to a new name",
+        )
+
     def __init__(self, args):
         self.args = args
 
@@ -114,6 +120,28 @@ class InitCommand(BaseCommand):
         self.config = {}
 
     def run_command(self):
+        if self.args.rename:
+            if not self.config_handler.config_exists():
+                raise RuntimeError(
+                    f"Model {self.args.name} not found. "
+                    f"Unable to rename a non-existing model. "
+                )
+            else:
+                if os.path.exists(
+                    os.path.join(self.work_dir, ".dynalab", self.args.rename)
+                ):
+                    raise RuntimeError(
+                        f"Model {self.args.rename} already exists. "
+                        f"Unable to rename {self.args.name} to {self.args.rename}"
+                    )
+                else:
+                    os.rename(
+                        os.path.join(self.work_dir, ".dynalab", self.args.name),
+                        os.path.join(self.work_dir, ".dynalab", self.args.rename),
+                    )
+                    print(f"Renamed model {self.args.name} to {self.args.rename}")
+            return
+
         if self.args.amend:
             if not self.config_handler.config_exists():
                 raise RuntimeError("Please run dynalab-cli init first")
@@ -128,6 +156,7 @@ class InitCommand(BaseCommand):
                     "Please update this field with dynalab-cli init --amend"
                 )
             return
+
         if self.config_handler.config_exists():
             ops = input(
                 f"Folder {self.work_dir} already initialized for "
