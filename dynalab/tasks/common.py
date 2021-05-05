@@ -34,10 +34,11 @@ class BaseTaskIO(ABC):
             )
             return context
         mock_context = _get_mock_context(model_name)
-        for data in mock_datapoints:
-            print(f"Obtaining test input data ...")
+        N = len(mock_datapoints)
+        for i, data in enumerate(mock_datapoints):
+            print(f"Test data {i+1} / {N}")
+            print(f"Mock input data is: ", data)
             mock_data = [{"body": data}]
-            print(f"Mock input data is: ", mock_data)
             print("Getting model response ...")
             response = handle_func(mock_data, mock_context)
             print(f"Your model response is {response}")
@@ -45,14 +46,17 @@ class BaseTaskIO(ABC):
             self.verify_response(response[0], data)
 
     def test_endpoint_individually(self, endpoint_url, json_datapoints):
-        for data in json_datapoints:
+        N = len(json_datapoints)
+        for i, data in enumerate(json_datapoints):
+            print(f"Test data {i+1} / {N}")
+            print("Test input data: ", data)
             r = requests.post(endpoint_url, data=json.dumps(data), headers={"Content-Type": "application/json"})
             try: 
                 r.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                raise RuntimeError(e)
+                print("Inference failed")
+                raise RuntimeError(f"Inference failed: {e}")
             else:
-                print("Test input data: ", data)
                 print("Your model response: ", r.text)
                 self.verify_response(r.json(), data)
 
