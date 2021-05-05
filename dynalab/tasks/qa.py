@@ -17,6 +17,11 @@ data = [
         "context": "Let's try a utf-8 with hackamore from j?\u00a1quima;",
         "question": "What are we trying?",
     },
+    {
+        "uid": str(uuid.uuid4()),
+        "context": " ".join([str(x) for x in range(513)]),
+        "question": "Can you handle this length?",
+    },
 ]
 
 

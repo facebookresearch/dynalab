@@ -11,6 +11,7 @@ data = [
         "uid": str(uuid.uuid4()),
         "statement": "I like utf-8 hackamore from j?\u00a1quima;",
     },
+    {"uid": str(uuid.uuid4()), "statement": " ".join([str(x) for x in range(513)])},
 ]
 
 
