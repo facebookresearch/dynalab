@@ -23,9 +23,9 @@ class TaskIO(BaseTaskIO):
             "id": copy from input["uid"],
             "answer": the answer string extracted from input["context"],
             "conf": <a float between 0 and 1> # optional, the model's confidence score
-            of the given answer; a recommended way of computing this is the product of 
-            the probabilities corresponding to the answer span start and end indices, 
-            obtained by a softmax over span start logits, and a separate softmax over 
+            of the given answer; a recommended way of computing this is the product of
+            the probabilities corresponding to the answer span start and end indices,
+            obtained by a softmax over span start logits, and a separate softmax over
             span end logits
         }
         """
@@ -34,7 +34,9 @@ class TaskIO(BaseTaskIO):
         assert response["signed"] == self.generate_response_signature(response)
         Nk = 3
         if "conf" in response:
-            assert response["conf"] >= 0 and response["conf"] <= 1, "Confidence score should be between 0 and 1"
+            assert (
+                response["conf"] >= 0 and response["conf"] <= 1
+            ), "Confidence score should be between 0 and 1"
             Nk += 1
         assert Nk == len(response), f"response should not contain other extra keys"
 

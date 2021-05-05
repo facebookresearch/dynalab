@@ -18,16 +18,16 @@ class TaskIO(BaseTaskIO):
         {
             "id": copy from input["uid"],
             "label": "hate" | "nothate",
-            "prob": {"hate": 0.2, "nothate": 0.8} # optional, a dictionary of probabilities
-            (0~1) for each label, will be normalized on our side
+            "prob": {"hate": 0.2, "nothate": 0.8} # optional, a dictionary of
+            probabilities (0~1) for each label, will be normalized on our side
         }
         """
-        # required keys 
+        # required keys
         assert "id" in response and response["id"] == self.data["uid"]
         assert "label" in response and response["label"] in {"hate", "nothate"}
         assert response["signed"] == self.generate_response_signature(response)
         Nk = 3
-        # optional keys 
+        # optional keys
         if "prob" in response:
             assert self._verify_prob(response["prob"])
             Nk += 1
