@@ -57,9 +57,11 @@ class Handler(BaseDynaHandler):
         # ############TODO 2: preprocess data #############
         """
         You can extract the key and values from the input data like below
-        example is a always json object. Yo can see what an example looks like by
+        example is a always json object. Yo can see what an example looks
+        in a Python interpreter by
         ```
-        dynalab.tasks.{your_task}.data[0]
+        >>> from dynalab.tasks import {your_task}
+        >>> {your_task}.data[0]
         ```
         """
         context = example["context"]
