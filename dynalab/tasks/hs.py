@@ -18,7 +18,7 @@ class TaskIO(BaseTaskIO):
         {
             "id": copy from input["uid"],
             "label": "hate" | "nothate",
-            "prob": {"hate": 0.2, "nothate": 0.8} # a dictionary of probabilities
+            "prob": {"hate": 0.2, "nothate": 0.8} # optional, a dictionary of probabilities
             (0~1) for each label, will be normalized on our side
         }
         """

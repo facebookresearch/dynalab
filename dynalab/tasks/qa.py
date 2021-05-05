@@ -22,10 +22,11 @@ class TaskIO(BaseTaskIO):
         {
             "id": copy from input["uid"],
             "answer": the answer string extracted from input["context"],
-            "conf": <a float between 0 and 1> # the model's confidence score
-            of the given answer; a recommended way of computing this is the product
-            of the starting and end index, obtained by softmax across all starting
-            and end index respectively
+            "conf": <a float between 0 and 1> # optional, the model's confidence score
+            of the given answer; a recommended way of computing this is the product of 
+            the probabilities corresponding to the answer span start and end indices, 
+            obtained by a softmax over span start logits, and a separate softmax over 
+            span end logits
         }
         """
         assert "id" in response and response["id"] == self.data["uid"]
