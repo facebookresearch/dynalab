@@ -97,10 +97,14 @@ class Handler(BaseDynaHandler):
         ```
         """
         example = self._read_data(data)
-        response = dict(example)
-        response["id"] = response.pop("uid")
         translation = self.vocab.string(inference_output, "sentencepiece")
-        response["translated_text"] = translation
+        response = {
+            "id": example["uid"],
+            "source_language": example["source_language"],
+            "source_text": example["source_text"],
+            "target_language": example["target_language"],
+            "translated_text": translation,
+        }
 
         # #################################################
         response = self.taskIO.sign_response(response, example)
