@@ -44,14 +44,15 @@ class TaskIO(BaseTaskIO):
         Expected response format:
         {
             "id": copy from input["uid"],
-            "label": "c" | "e" | "n",
-            "prob": {"c": 0.2, "e": 0.6, "n": 0.2} # optional, a dictionary of
-            probabilities (0~1) for each label, will be normalized on our side
+            "label": "entailed" | "neutral" | "contradictory"
+            "prob": {"entailed": 0.2, "neutral": 0.6, "contradictory": 0.2} 
+            # prob is optional, a dictionary of probabilities (0~1) for each 
+            # label, will be normalized on our side
         }
         """
         # required keys
         assert "id" in response and response["id"] == data["uid"]
-        assert "label" in response and response["label"] in {"c", "e", "n"}
+        assert "label" in response and response["label"] in {"entailed", "neutral", "contradictory"}
         assert response["signed"] == self.generate_response_signature(response, data)
         Nk = 3
         # optional keys
@@ -62,11 +63,11 @@ class TaskIO(BaseTaskIO):
 
     def _verify_prob(self, prob):
         error_message = (
-            "response['prob'] should be dictionary like {'c': 0.1, 'e': 0.3. 'n': 0.6}"
+            "response['prob'] should be dictionary like {'entailed': 0.2, 'neutral': 0.6, 'contradictory': 0.2}"
         )
         assert isinstance(prob, dict), error_message
         assert (
-            len(prob) == 3 and "c" in prob and "e" in prob and "n" in prob
+            len(prob) == 3 and "entailed" in prob and "neutral" in prob and "contradictory" in prob
         ), error_message
         for key in prob:
             assert (

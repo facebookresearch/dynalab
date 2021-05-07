@@ -24,16 +24,16 @@ For currently existing tasks, the output format is expected to be
 ```
 {
     "id": copy from input["uid"],
-    "label": "c" | "e" | "n",
-    "prob": {"c": 0.2, "e": 0.6, "n": 0.2} # optional, a dictionary of probabilities (0~1) for each label, will be normalized on our side
+    "label": "entailed" | "neutral" | "contradictory"
+    "prob": {"entailed": 0.2, "neutral": 0.6, "contradictory": 0.2} # optional, a dictionary of probabilities (0~1) for each label, will be normalized on our side
 }
 ```
 **hs**
 ```
 {
     "id": copy from input["uid"],
-    "label": "hate" | "nothate",
-    "prob": {"hate": 0.2, "nothate": 0.8} # optional, a dictionary of probabilities (0~1) for each label, will be normalized on our side
+    "label": "hateful" | "not-hateful",
+    "prob": {"hateful": 0.2, "not-hateful": 0.8} # optional, a dictionary of probabilities (0~1) for each label, will be normalized on our side
 }
 ```
 **sentiment**
