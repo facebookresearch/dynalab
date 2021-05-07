@@ -127,6 +127,10 @@ class TestCommand(BaseCommand):
                 os.path.join(lib_dir, "dev-docker-entrypoint.sh"),
                 os.path.join(tmp_dir, "dev-docker-entrypoint.sh"),
             )
+            shutil.copyfile(
+                os.path.join(lib_dir, "config.properties"),
+                os.path.join(tmp_dir, "config.properties"),
+            )
 
             # build docker
             repository_name = self.args.name.lower()

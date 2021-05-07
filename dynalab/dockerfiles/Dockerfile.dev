@@ -29,6 +29,7 @@ RUN python -m pip install --no-cache-dir torchserve
 RUN python -m pip install --no-cache-dir torch==1.7.1
 
 COPY ${add_dir}/dev-docker-entrypoint.sh /usr/local/bin/dev-entrypoint.sh
+COPY ${add_dir}/config.properties /usr/local/bin/config.properties
 RUN chmod +x /usr/local/bin/dev-entrypoint.sh
 
 RUN mkdir -p /opt/ml/model

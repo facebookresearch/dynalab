@@ -13,7 +13,7 @@ set -m
 
 # start torchserve
 echo "Start serving model..."
-torchserve --start --ncs --models ${model_name}.mar --model-store /opt/ml/model 1>&2 &
+torchserve --start --ncs --ts-config /usr/local/bin/config.properties 1>&2 &
 
 # health ping to make sure the http connection is on
 echo "Check model loading status..."
