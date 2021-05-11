@@ -1,6 +1,9 @@
 #!/bin/bash
 
 # Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
 
 model_name=$1
 # read task from config to make sure that config file is not excluded in the tarball
@@ -19,11 +22,11 @@ torchserve --start --ncs --models ${model_name}.mar --model-store /opt/ml/model 
 echo "Check model loading status..."
 status=$(curl -s http://localhost:8080/ping)
 while [[ $status != Healthy ]]; do
-    if [[ -z $status ]]; then 
+    if [[ -z $status ]]; then
         echo "HTTP connection has not yet been set up. Sleep 30..."
         sleep 30
         status=$(curl -s http://localhost:8080/ping)
-    else 
+    else
         status=$(python -c "import json; print($status['status'])")
         if [[ $status = Unhealthy ]]; then
             echo "Serving model failed."
