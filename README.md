@@ -4,7 +4,7 @@ Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you
 ## License
 Dynalab is [MIT-licensed](LICENSE).
 ## Installation
-Dynalab only works on Python 3.6+. We currently only support Mac OS and Ubuntu.
+Dynalab has been tested on Python 3.6+, on Mac OS and Ubuntu.
 
 ```
 git clone https://github.com/facebookresearch/dynalab.git
