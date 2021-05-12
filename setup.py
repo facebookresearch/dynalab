@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 setup(
     name="dynalab",
     version="0.1",
-    packages=find_packages(include=["dynalab", "dynalab_cli"]),
+    packages=find_packages(include=["dynalab", "dynalab_cli", "dynalab.handler", "dynalab.tasks", "dynalab.dockerfiles"]),
     entry_points={"console_scripts": ["dynalab-cli = dynalab_cli.main:main"]},
     author="Dynabench",
     author_email="dynabench@fb.com",
