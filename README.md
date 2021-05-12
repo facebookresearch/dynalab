@@ -4,7 +4,7 @@ Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you
 ## License
 Dynalab is [MIT-licensed](LICENSE).
 ## Installation
-Dynalab only works on Python 3.6+.
+Dynalab only works on Python 3.6+. We currently only support Mac OS and Ubuntu.
 
 ```
 git clone https://github.com/facebookresearch/dynalab.git
@@ -12,15 +12,9 @@ cd dynalab
 pip install -e .
 ```
 
-You will also need to install [docker](https://docs.docker.com/get-docker/).
+You will also need to install [docker](https://docs.docker.com/get-docker/). The Docker version we use is 20.10.5.
 
 ## Model submission workflow
-
-**Beta testing: please overwrite your [config file](dynalab/config.py) at `dynalab/config.py` with**
-```
-DYNABENCH_API = "https://dev.dynabench.org:8081"
-DYNABENCH_WEB = "https://dev.dynabench.org"
-```
 
 ### Step 1: Initialize the project folder
 Run the following command to initialize your project folder for model upload:
@@ -32,7 +26,6 @@ Follow the prompts to configure this folder. You can find more information about
 
 **From now on, you should always run `dynalab-cli` from the root path, otherwise it will get confused and you may see weird errors.**
 
-**Beta testing: please copy the `dynalab` directory into your root path**
 ```
 cp -r dynalab /path/to/fancy_project
 ```
