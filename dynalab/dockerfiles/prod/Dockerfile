@@ -18,6 +18,7 @@ RUN apt-get update && \
     openjdk-11-jdk \
     curl \
     vim \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
