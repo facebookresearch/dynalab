@@ -9,7 +9,7 @@ Dynalab has been tested on Python 3.6+, on Mac OS and Ubuntu.
 ```
 git clone https://github.com/facebookresearch/dynalab.git
 cd dynalab
-pip install .
+pip install -e .
 ```
 
 You will also need to install [docker](https://docs.docker.com/get-docker/). The Docker version we use is 20.10.5.
