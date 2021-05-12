@@ -26,10 +26,6 @@ Follow the prompts to configure this folder. You can find more information about
 
 **From now on, you should always run `dynalab-cli` from the root path, otherwise it will get confused and you may see weird errors.**
 
-```
-cp -r dynalab /path/to/fancy_project
-```
-
 ### Step 2: Complete the model handler
 If you don't already have a handler file, we will have created a [template](https://github.com/facebookresearch/dynalab/blob/master/dynalab/handler/handler.py.template) for you with instructions to fill at `./handler.py`. The handler file defines how your model takes inputs, runs inference and returns a response. Follow the instructions in the template file to complete the handler.
 
