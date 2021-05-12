@@ -1,5 +1,8 @@
 ## What is Dynalab?
 Imagine you developed a fancy model, living in `/path/to/fancy_project`, and you want to share your amazing results on the [Dynabench](https://www.dynabench.org) model leaderboard. Dynalab makes it easy for you to do just that.
+
+## License
+Dynalab is [MIT-licensed](LICENSE).
 ## Installation
 Dynalab only works on Python 3.6+.
 
