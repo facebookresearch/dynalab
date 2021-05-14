@@ -62,9 +62,12 @@ class UploadCommand(BaseCommand):
             try:
                 r.raise_for_status()
             except requests.exceptions.HTTPError as ex:
-                print(ex)
                 if r.status_code == 429:
                     print(f"Failed to submit model {self.args.name} due to submission limit exceeded")
+                else:
+                    print(f"Failed to submit model due to: {ex}")
+            except Exception as ex:
+                print(f"Failed to submit model due to: {ex}")
             # TODO: show which email address it is: API to fetch email address?
             else:
                 print(
