@@ -59,11 +59,17 @@ class UploadCommand(BaseCommand):
             r = requests.post(
                 url, files=files, data=data, headers=AccessToken().get_headers()
             )
-            r.raise_for_status()
+            try:
+                r.raise_for_status()
+            except requests.exceptions.HTTPError as ex:
+                print(ex)
+                if r.status_code == 429:
+                    print(f"Failed to submit model {self.args.name} due to submission limit exceeded")
             # TODO: show which email address it is: API to fetch email address?
-            print(
-                f"Your model {self.args.name} has been uploaded to S3 and "
-                f"will be deployed shortly. "
-                f"You will get an email notification when your model is available "
-                f"on Dynabench."
-            )
+            else:
+                print(
+                    f"Your model {self.args.name} has been uploaded to S3 and "
+                    f"will be deployed shortly. "
+                    f"You will get an email notification when your model is available "
+                    f"on Dynabench."
+                )
