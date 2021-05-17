@@ -8,10 +8,16 @@ from dynalab.tasks.common import BaseTaskIO
 data = [
     {
         "uid": str(uuid.uuid4()),
-        "source_language": "en_XX",
-        "target_language": "hr_HR",
-        "source_text": "Hello world !",
-    }
+        "sourceLanguage": "en_XX",
+        "targetLanguage": "hr_HR",
+        "sourceText": "Hello world !",
+    },
+    {
+        "uid": str(uuid.uuid4()),
+        "sourceLanguage": "hr_HR",
+        "targetLanguage": "en_XX",
+        "sourceText": "Toni Kukoč sjajan je košarkaš.",
+    },
 ]
 
 
@@ -21,16 +27,15 @@ class TaskIO(BaseTaskIO):
 
     def verify_response(self, response, data):
         assert "id" in response and response["id"] == data["uid"]
-        assert "translated_text" in response and isinstance(
-            response["translated_text"], str
+        assert "translatedText" in response and isinstance(
+            response["translatedText"], str
         )
         assert response["signed"] == self.generate_response_signature(response, data)
 
     def parse_signature_input(self, response, data):
         task = "flores"
         inputs = {
-            key: data[key]
-            for key in ["source_language", "target_language", "source_text"]
+            key: data[key] for key in ["sourceLanguage", "targetLanguage", "sourceText"]
         }
-        outputs = {key: response[key] for key in ["translated_text"]}
+        outputs = {key: response[key] for key in ["translatedText"]}
         return task, inputs, outputs
