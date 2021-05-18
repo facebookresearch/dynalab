@@ -4,11 +4,11 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import shutil
 import subprocess
+import tempfile
 
 import requests
-import tempfile
-import shutil
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
@@ -70,7 +70,9 @@ class UploadCommand(BaseCommand):
                 r.raise_for_status()
             except requests.exceptions.HTTPError as ex:
                 if r.status_code == 429:
-                    print(f"Failed to submit model {self.args.name} due to submission limit exceeded")
+                    print(
+                        f"Failed to submit model {self.args.name} due to submission limit exceeded"
+                    )
                 else:
                     print(f"Failed to submit model due to: {ex}")
             except Exception as ex:
@@ -84,6 +86,10 @@ class UploadCommand(BaseCommand):
                     f"on Dynabench."
                 )
             finally:
-                shutil.move(tarball, os.path.join(os.getcwd(), os.path.basename(tarball)))
+                shutil.move(
+                    tarball, os.path.join(os.getcwd(), os.path.basename(tarball))
+                )
                 tmp_tarball_dir.cleanup()
-                print(f"You can inspect your model submission locally at {self.args.name}.tar.gz")
+                print(
+                    f"You can inspect your model submission locally at {self.args.name}.tar.gz"
+                )
