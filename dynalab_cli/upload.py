@@ -84,6 +84,6 @@ class UploadCommand(BaseCommand):
                     f"on Dynabench."
                 )
             finally:
-                shutil.move(tarball, os.getcwd())
+                shutil.move(tarball, os.path.join(os.getcwd(), os.path.basename(tarball)))
                 tmp_tarball_dir.cleanup()
                 print(f"You can inspect your model submission locally at {self.args.name}.tar.gz")
