@@ -51,7 +51,7 @@ class BaseTaskIO(ABC):
             try:
                 json.dumps(response)
             except Exception as e:
-                raise Exception("The model response isn't serializable to json !") from e
+                raise RuntimeError("The model response isn't serializable to json !") from e
             print(f"Verifying model response ...")
             self.verify_response(response[0], data)
 

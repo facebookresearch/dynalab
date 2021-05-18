@@ -26,10 +26,9 @@ class TaskIO(BaseTaskIO):
         BaseTaskIO.__init__(self)
 
     def verify_response(self, response, data):
-        assert "id" in response and response["id"] == data["uid"]
-        assert "translatedText" in response and isinstance(
-            response["translatedText"], str
-        )
+        assert response.keys() == {"id", "translatedText", "signed"}, response.keys()
+        assert response["id"] == data["uid"]
+        assert isinstance(response["translatedText"], str)
         assert response["signed"] == self.generate_response_signature(response, data)
 
     def parse_signature_input(self, response, data):
