@@ -71,7 +71,8 @@ class UploadCommand(BaseCommand):
             except requests.exceptions.HTTPError as ex:
                 if r.status_code == 429:
                     print(
-                        f"Failed to submit model {self.args.name} due to submission limit exceeded"
+                        f"Failed to submit model {self.args.name} "
+                        f"due to submission limit exceeded"
                     )
                 else:
                     print(f"Failed to submit model due to: {ex}")
@@ -91,5 +92,6 @@ class UploadCommand(BaseCommand):
                 )
                 tmp_tarball_dir.cleanup()
                 print(
-                    f"You can inspect your model submission locally at {self.args.name}.tar.gz"
+                    f"You can inspect your model submission locally at "
+                    f"{self.args.name}.tar.gz"
                 )
