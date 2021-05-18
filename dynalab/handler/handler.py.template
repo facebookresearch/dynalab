@@ -30,7 +30,7 @@ class Handler(BaseDynaHandler):
         """
         load model and extra files
         """
-        model_pt_path, model_file_dir, device = self._handler_initialize(context)
+        model_pt_path, model_file_dir, device_str = self._handler_initialize(context)
         self.taskIO = TaskIO()
 
         # ############TODO 1: Initialize model ############
@@ -41,8 +41,8 @@ class Handler(BaseDynaHandler):
             os.path.join(model_file_dir, "config")
         )
         self.model = MyModel(config)
-        self.model.load_state_dict(torch.load(model_pt_path, map_location="cpu"))
-        self.model.to(device)
+        self.model.load_state_dict(torch.load(model_pt_path, map_location=device_str))
+        self.model.to(torch.device(device_str))
         self.model.eval()
         # #################################################
 

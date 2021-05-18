@@ -215,8 +215,8 @@ class SetupConfigHandler:
                     os.path.join(self.root_dir, f),
                     root_dir=self.root_dir,
                     is_file=False,
-                    allow_empty=False,
-                ), f"{f} is empty or not a valid path"
+                    allow_empty=True,
+                ), f"{f} is not a valid path"
                 excluded_files.add(f)
             config[key] = ",".join(excluded_files)
         for key in config.keys():
