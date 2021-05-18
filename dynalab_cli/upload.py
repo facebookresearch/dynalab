@@ -7,6 +7,8 @@ import os
 import subprocess
 
 import requests
+import tempfile
+import shutil
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
@@ -32,13 +34,18 @@ class UploadCommand(BaseCommand):
         # tarball the current directory
         print("Tarballing the project directory...")
         config = self.config_handler.load_config()
-        tarball = f"{self.args.name}.tar.gz"
+
+        # set up exclude files
         tmp_dir = os.path.join(".dynalab", self.args.name, "tmp")
         os.makedirs(tmp_dir, exist_ok=True)
         exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
         self.config_handler.write_exclude_filelist(
             exclude_list_file, self.args.name, exclude_model=False
         )
+
+        # tarball
+        tmp_tarball_dir = tempfile.TemporaryDirectory()
+        tarball = os.path.join(tmp_tarball_dir.name, f"{self.args.name}.tar.gz")
         process = subprocess.run(
             ["tar", f"--exclude-from={exclude_list_file}", "-czf", tarball, "."],
             stdout=subprocess.PIPE,
@@ -76,3 +83,7 @@ class UploadCommand(BaseCommand):
                     f"You will get an email notification when your model is available "
                     f"on Dynabench."
                 )
+            finally:
+                shutil.move(tarball, os.getcwd())
+                tmp_tarball_dir.cleanup()
+                print(f"You can inspect your model submission locally at {self.args.name}.tar.gz")

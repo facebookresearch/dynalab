@@ -27,11 +27,9 @@ class BaseDynaHandler(BaseHandler):
             properties["model_dir"], manifest["model"]["serializedFile"]
         )
         model_file_dir = properties["model_dir"]
-        device = torch.device(
-            "cuda:" + str(properties["gpu_id"]) if torch.cuda.is_available() else "cpu"
-        )
+        device_str = "cuda:" + str(properties["gpu_id"]) if properties["gpu_id"] and torch.cuda.is_available() else "cpu"
 
-        return model_pt_path, model_file_dir, device
+        return model_pt_path, model_file_dir, device_str
 
     def _read_data(self, data):
         return data[0]["body"]
