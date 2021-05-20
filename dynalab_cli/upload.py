@@ -30,8 +30,7 @@ class UploadCommand(BaseCommand):
         self.config_handler = SetupConfigHandler(args.name)
 
     def run_command(self):
-        # authentication
-        # tarball the current directory
+        # validate config
         try:
             self.config_handler.validate_config()
         except AssertionError as err:
@@ -44,7 +43,7 @@ class UploadCommand(BaseCommand):
             config = self.config_handler.load_config()
             print("Config file validated")
 
-        # set up exclude files
+        # set up exclude files for tarball
         print("Tarballing the project directory...")
         tmp_dir = os.path.join(".dynalab", self.args.name, "tmp")
         os.makedirs(tmp_dir, exist_ok=True)
