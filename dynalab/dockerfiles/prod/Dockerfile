@@ -24,7 +24,7 @@ RUN apt-get update && \
     curl \
     vim \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* 
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
 RUN cd /tmp \
@@ -44,9 +44,9 @@ ENV TEMP=/home/model-server/tmp
 ADD ${tarball} /home/model-server/code
 WORKDIR /home/model-server/code
 
-RUN python -m pip install git+git://github.com/facebookresearch/dynalab.git
-RUN if [ -f requirements.txt ] && [ ${requirements} = True ]; then python -m pip install --no-cache-dir -Ir requirements.txt; fi
-RUN if [ -f setup.py ] && [ ${setup} = True ]; then python -m pip install --no-cache-dir -Ie code; fi
+RUN if [ -f requirements.txt ] && [ ${requirements} = True ]; then python -m pip install --no-cache-dir --force-reinstall -r requirements.txt; fi
+RUN if [ -f setup.py ] && [ ${setup} = True ]; then python -m pip install --no-cache-dir --force-reinstall -e code; fi
+RUN python -m pip install --force-reinstall git+git://github.com/facebookresearch/dynalab.git
 
 ENV PYTHONIOENCODING=UTF-8
 ENV MY_SECRET=${my_secret}
