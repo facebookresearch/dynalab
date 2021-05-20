@@ -32,10 +32,20 @@ class UploadCommand(BaseCommand):
     def run_command(self):
         # authentication
         # tarball the current directory
-        print("Tarballing the project directory...")
-        config = self.config_handler.load_config()
+        try:
+            self.config_handler.validate_config()
+        except AssertionError as err:
+            print(
+                f"Error: {err}.\nPlease fix your config file by",
+                "dynalab-cli init --amend",
+            )
+            exit(1)
+        else:
+            config = self.config_handler.load_config()
+            print("Config file validated")
 
         # set up exclude files
+        print("Tarballing the project directory...")
         tmp_dir = os.path.join(".dynalab", self.args.name, "tmp")
         os.makedirs(tmp_dir, exist_ok=True)
         exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
