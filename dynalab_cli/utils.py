@@ -111,7 +111,7 @@ def logout():
 
 
 def get_tasks():
-    r = requests.get(f"{DYNABENCH_API}/tasks")
+    r = requests.get(f"{DYNABENCH_API}/tasks/submissible")
     r.raise_for_status()
     tasks = [task["task_code"] for task in r.json() if task["task_code"]]
     return tasks
