@@ -48,6 +48,10 @@ class BaseTaskIO(ABC):
             print("Getting model response ...")
             response = handle_func(mock_data, mock_context)
             print(f"Your model response is {response}")
+            try:
+                json.dumps(response)
+            except Exception as e:
+                raise RuntimeError("The model response isn't serializable to json !") from e
             print(f"Verifying model response ...")
             self.verify_response(response[0], data)
 
