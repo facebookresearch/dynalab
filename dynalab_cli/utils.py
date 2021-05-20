@@ -117,18 +117,6 @@ def get_tasks():
     return tasks
 
 
-def get_task_id(shortname):
-    r = requests.get(f"{DYNABENCH_API}/tasks")
-    r.raise_for_status()
-    tasks = r.json()
-    for task in tasks:
-        if shortname == task["task_code"]:
-            return task["id"]
-    raise RuntimeError(
-        f"Could not find task {shortname}. Task name must be one of {get_tasks()}"
-    )
-
-
 # some file path utils
 def check_path(path, root_dir=".", is_file=True, allow_empty=True):
     if not path:

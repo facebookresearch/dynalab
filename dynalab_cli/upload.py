@@ -12,7 +12,7 @@ import requests
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
-from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_id
+from dynalab_cli.utils import AccessToken, SetupConfigHandler
 
 
 class UploadCommand(BaseCommand):
@@ -59,10 +59,9 @@ class UploadCommand(BaseCommand):
         # upload to s3
         print("Uploading file to S3...")
         url = f"{DYNABENCH_API}/models/upload/s3"
-        task_id = get_task_id(config["task"])
         with open(tarball, "rb") as f:
             files = {"tarball": f}
-            data = {"name": self.args.name, "taskId": task_id}
+            data = {"name": self.args.name, "taskCode": config["task"]}
             r = requests.post(
                 url, files=files, data=data, headers=AccessToken().get_headers()
             )
