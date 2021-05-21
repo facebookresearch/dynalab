@@ -12,7 +12,7 @@ import requests
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
-from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_id
+from dynalab_cli.utils import AccessToken, SetupConfigHandler
 
 
 class UploadCommand(BaseCommand):
@@ -30,12 +30,21 @@ class UploadCommand(BaseCommand):
         self.config_handler = SetupConfigHandler(args.name)
 
     def run_command(self):
-        # authentication
-        # tarball the current directory
-        print("Tarballing the project directory...")
-        config = self.config_handler.load_config()
+        # validate config
+        try:
+            self.config_handler.validate_config()
+        except AssertionError as err:
+            print(
+                f"Error: {err}.\nPlease fix your config file by",
+                "dynalab-cli init --amend",
+            )
+            exit(1)
+        else:
+            config = self.config_handler.load_config()
+            print("Config file validated")
 
-        # set up exclude files
+        # set up exclude files for tarball
+        print("Tarballing the project directory...")
         tmp_dir = os.path.join(".dynalab", self.args.name, "tmp")
         os.makedirs(tmp_dir, exist_ok=True)
         exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
@@ -59,10 +68,9 @@ class UploadCommand(BaseCommand):
         # upload to s3
         print("Uploading file to S3...")
         url = f"{DYNABENCH_API}/models/upload/s3"
-        task_id = get_task_id(config["task"])
         with open(tarball, "rb") as f:
             files = {"tarball": f}
-            data = {"name": self.args.name, "taskId": task_id}
+            data = {"name": self.args.name, "taskCode": config["task"]}
             r = requests.post(
                 url, files=files, data=data, headers=AccessToken().get_headers()
             )
