@@ -29,7 +29,7 @@ class BaseDynaHandler(BaseHandler):
         model_file_dir = properties["model_dir"]
         device_str = (
             "cuda:" + str(properties["gpu_id"])
-            if properties["gpu_id"] and torch.cuda.is_available()
+            if properties["gpu_id"] is not None and torch.cuda.is_available()
             else "cpu"
         )
 

@@ -34,7 +34,7 @@ class BaseTaskIO(ABC):
                 model_dir=model_dir,
                 manifest=manifest,
                 batch_size=1,
-                gpu=False,
+                gpu=None,
                 mms_version=None,
             )
             return context
