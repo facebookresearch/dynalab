@@ -8,14 +8,14 @@ from dynalab.tasks.common import BaseTaskIO
 data = [
     {
         "uid": str(uuid.uuid4()),
-        "sourceLanguage": "en_XX",
-        "targetLanguage": "hr_HR",
-        "sourceText": "Hello world !",
+        "sourceLanguage": "eng",
+        "targetLanguage": "hrv",
+        "sourceText": "Toni Kukoč is a great basketball player.",
     },
     {
         "uid": str(uuid.uuid4()),
-        "sourceLanguage": "hr_HR",
-        "targetLanguage": "en_XX",
+        "sourceLanguage": "hrv",
+        "targetLanguage": "eng",
         "sourceText": "Toni Kukoč sjajan je košarkaš.",
     },
 ]
