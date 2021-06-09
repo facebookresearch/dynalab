@@ -98,6 +98,7 @@ def login():
             "A browser window will open prompting you to login, "
             + "after login please copy the API token and paste it here"
         )
+        print(f"Opening in browser: {DYNABENCH_WEB}/generate_api_token")
         webbrowser.open_new_tab(f"{DYNABENCH_WEB}/generate_api_token")
         user_token = input("Paste your API token here: ")
         api_token.save(user_token)
@@ -146,11 +147,11 @@ def default_filename(key):
 
 
 def check_model_name(name):
-    pat = re.compile("^[a-zA-Z0-9-]+$")
+    pat = re.compile("^[a-z0-9-]+$")
     if not pat.match(name):
         raise ValueError(
             "Model name can only contain letters, numbers and "
-            "dash (it must satisfy the pattern ^[a-zA-Z0-9-]+$)."
+            "dash (it must satisfy the pattern ^[a-z0-9-]+$)."
         )
 
 
