@@ -184,7 +184,6 @@ class TestCommand(BaseCommand):
 
         subprocess.run(docker_build_command)
         # NOTE: cpu and memory limit are specific to ml.m5.xlarge
-        # breakpoint()
         docker_run = [
             "docker",
             "run",
