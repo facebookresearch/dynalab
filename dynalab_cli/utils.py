@@ -146,11 +146,11 @@ def default_filename(key):
 
 
 def check_model_name(name):
-    pat = re.compile("^[a-zA-Z0-9-]+$")
+    pat = re.compile("^[a-z0-9-]+$")
     if not pat.match(name):
         raise ValueError(
             "Model name can only contain letters, numbers and "
-            "dash (it must satisfy the pattern ^[a-zA-Z0-9-]+$)."
+            "dash (it must satisfy the pattern ^[a-z0-9-]+$)."
         )
 
 
