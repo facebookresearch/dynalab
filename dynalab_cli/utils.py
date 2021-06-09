@@ -98,6 +98,7 @@ def login():
             "A browser window will open prompting you to login, "
             + "after login please copy the API token and paste it here"
         )
+        print(f"Opening in browser: {DYNABENCH_WEB}/generate_api_token")
         webbrowser.open_new_tab(f"{DYNABENCH_WEB}/generate_api_token")
         user_token = input("Paste your API token here: ")
         api_token.save(user_token)
