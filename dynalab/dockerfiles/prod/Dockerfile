@@ -45,7 +45,7 @@ ADD ${tarball} /home/model-server/code
 WORKDIR /home/model-server/code
 
 RUN if [ -f requirements.txt ] && [ ${requirements} = True ]; then python -m pip install --no-cache-dir --force-reinstall -r requirements.txt; fi
-RUN if [ -f setup.py ] && [ ${setup} = True ]; then python -m pip install --no-cache-dir --force-reinstall -e code; fi
+RUN if [ -f setup.py ] && [ ${setup} = True ]; then python -m pip install --no-cache-dir --force-reinstall -e .; fi
 RUN python -m pip install --force-reinstall git+git://github.com/facebookresearch/dynalab.git
 
 ENV PYTHONIOENCODING=UTF-8
