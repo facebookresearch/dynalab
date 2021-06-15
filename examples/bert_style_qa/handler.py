@@ -9,8 +9,6 @@ from transformers import (AutoConfig, AutoTokenizer,
 from dynalab.handler.base_handler import BaseDynaHandler
 from dynalab.tasks.qa import TaskIO
 
-sys.path.append("/home/model-server/code")
-
 
 class Handler(BaseDynaHandler):
 
@@ -19,12 +17,12 @@ class Handler(BaseDynaHandler):
         Load model and tokenizer files.
         """
         self.taskIO = TaskIO()
-        _, _, device_str = self._handler_initialize(context)
-        config = AutoConfig.from_pretrained('.')
+        model_pt_path, _, device_str = self._handler_initialize(context)
+        config = AutoConfig.from_pretrained("config.json")
         self.model = AutoModelForQuestionAnswering.from_pretrained(
-            '.', config=config
+            model_pt_path, config=config
         )
-        self.tokenizer = AutoTokenizer.from_pretrained(".")
+        self.tokenizer = AutoTokenizer.from_pretrained('.')
         self.model.to(torch.device(device_str))
         self.model.eval()
 
