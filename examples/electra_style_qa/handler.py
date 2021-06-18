@@ -18,12 +18,12 @@ class Handler(BaseDynaHandler):
         self.taskIO = TaskIO()
         model_pt_path, _, device_str = self._handler_initialize(context)
         config = AutoConfig.from_pretrained("config.json")
-        self.model = AutoModelForQuestionAnswering.from_pretrained(
-            model_pt_path, config=config
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained('.')
         device = -1 if device_str == 'cpu' else int(device_str[-1])
-        self.pipeline = QuestionAnsweringPipeline(model=self.model, tokenizer=self.tokenizer, device=device)
+        self.pipeline = QuestionAnsweringPipeline(
+            model=AutoModelForQuestionAnswering.from_pretrained(model_pt_path, config=config),
+            tokenizer=AutoTokenizer.from_pretrained('.'), 
+            device=device
+        )
         self.initialized = True
 
     def preprocess(self, data):
