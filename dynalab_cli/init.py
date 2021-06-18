@@ -131,6 +131,7 @@ class InitCommand(BaseCommand):
                     f"Unable to rename a non-existing model. "
                 )
             else:
+                check_model_name(self.args.rename)
                 if os.path.exists(
                     os.path.join(self.work_dir, ".dynalab", self.args.rename)
                 ):
