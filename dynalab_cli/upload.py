@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 
 import requests
+import json
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
@@ -68,38 +69,33 @@ class UploadCommand(BaseCommand):
         # upload to s3
         print("Uploading file to S3...")
         url = f"{DYNABENCH_API}/models/upload/s3"
-        with open(tarball, "rb") as f:
-            files = {"tarball": f}
-            data = {"name": self.args.name, "taskCode": config["task"]}
-            r = requests.post(
-                url, files=files, data=data, headers=AccessToken().get_headers()
-            )
-            try:
-                r.raise_for_status()
-            except requests.exceptions.HTTPError as ex:
-                if r.status_code == 429:
-                    print(
-                        f"Failed to submit model {self.args.name} "
-                        f"due to submission limit exceeded"
-                    )
-                else:
-                    print(f"Failed to submit model due to: {ex}")
-            except Exception as ex:
-                print(f"Failed to submit model due to: {ex}")
-            # TODO: show which email address it is: API to fetch email address?
-            else:
-                print(
-                    f"Your model {self.args.name} has been uploaded to S3 and "
-                    f"will be deployed shortly. "
-                    f"You will get an email notification when your model is available "
-                    f"on Dynabench."
-                )
-            finally:
-                shutil.move(
-                    tarball, os.path.join(os.getcwd(), os.path.basename(tarball))
-                )
-                tmp_tarball_dir.cleanup()
-                print(
-                    f"You can inspect your model submission locally at "
-                    f"{self.args.name}.tar.gz"
-                )
+        task_code = config["task"]
+        auth_header = AccessToken().get_headers()["Authorization"]
+        res = subprocess.check_output(
+            [
+                "curl",
+                "--verbose",
+                "-H",
+                "Content-Type: multipart/form-data",
+                "-H",
+                f"Authorization: {auth_header}",
+                "-F",
+                f"name={self.args.name}",
+                "-F",
+                f"taskCode={task_code}",
+                "-F",
+                f"tarball=@{tarball}",
+                url,
+            ]
+        )
+        if res:
+            error = json.loads(res).get("error")
+            assert not error, error
+
+        # TODO: show which email address it is: API to fetch email address?
+        print(
+            f"Your model {self.args.name} has been uploaded to S3 and "
+            f"will be deployed shortly. "
+            f"You will get an email notification when your model is available "
+            f"on Dynabench."
+        )
