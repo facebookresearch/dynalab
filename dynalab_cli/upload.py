@@ -12,7 +12,7 @@ import requests
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
-from dynalab_cli.utils import AccessToken, SetupConfigHandler
+from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_submission_limit
 
 
 class UploadCommand(BaseCommand):
@@ -78,9 +78,11 @@ class UploadCommand(BaseCommand):
                 r.raise_for_status()
             except requests.exceptions.HTTPError as ex:
                 if r.status_code == 429:
+                    hr_diff, threshold = get_task_submission_limit(config["task"])
                     print(
                         f"Failed to submit model {self.args.name} "
-                        f"due to submission limit exceeded"
+                        f"due to submission limit exceeded. No more than {threshold} "
+                        f"submissions allowed every {hr_diff} hours for task {config['task']}."
                     )
                 else:
                     print(f"Failed to submit model due to: {ex}")
@@ -100,6 +102,6 @@ class UploadCommand(BaseCommand):
                 )
                 tmp_tarball_dir.cleanup()
                 print(
-                    f"You can inspect your model submission locally at "
+                    f"You can inspect the prepared model submission locally at "
                     f"{self.args.name}.tar.gz"
                 )

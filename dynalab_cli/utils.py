@@ -117,6 +117,20 @@ def get_tasks():
     tasks = [task["task_code"] for task in r.json() if task["task_code"]]
     return tasks
 
+def get_task_submission_limit(task_code):
+    hr_diff = 24
+    threshold = 3
+    r = requests.get(f"{DYNABENCH_API}/tasks/submitable")
+    r.raise_for_status()
+    for task in r.json():
+        if task["task_code"] == task_code:
+            if task["settings_json"] is not None:
+                settings = json.loads(task["settings_json"])
+                return settings.get("dynalab_hr_diff", hr_diff), settings.get("dynalab_threshold", threshold)
+            else:
+                return hr_diff, threshold
+    return hr_diff, threshold
+
 
 # some file path utils
 def check_path(path, root_dir=".", is_file=True, allow_empty=True):
