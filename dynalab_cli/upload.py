@@ -102,6 +102,6 @@ class UploadCommand(BaseCommand):
                 )
                 tmp_tarball_dir.cleanup()
                 print(
-                    f"You can inspect your model submission locally at "
+                    f"You can inspect the prepared model submission locally at "
                     f"{self.args.name}.tar.gz"
                 )
