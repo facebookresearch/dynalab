@@ -21,6 +21,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "requests>=2.24.0",
+        "requests_toolbelt>=0.9.1",
         "torchserve>=0.2.0",
         "torch-model-archiver>=0.2.0",
     ],

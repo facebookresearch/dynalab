@@ -4,15 +4,16 @@
 # LICENSE file in the root directory of this source tree.
 
 import importlib
+import logging
 import os
 import shutil
 import subprocess
 import sys
-import logging
 from pathlib import Path
 
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import SetupConfigHandler
+
 
 logger = logging.getLogger(__name__)
 
@@ -200,10 +201,7 @@ class TestCommand(BaseCommand):
             stdout=subprocess.PIPE,
             universal_newlines=True,
         )
-        image_id = subprocess.check_output(
-            ["docker", "ps", "-alq"],
-            encoding="utf-8",
-        ).strip()
+        
         ts_log = os.path.join(tmp_dir, "ts_log.err")
         with open(ts_log, "w") as f:
             f.write(process.stderr)

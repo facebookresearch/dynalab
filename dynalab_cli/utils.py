@@ -117,6 +117,7 @@ def get_tasks():
     tasks = [task["task_code"] for task in r.json() if task["task_code"]]
     return tasks
 
+
 def get_task_submission_limit(task_code):
     hr_diff = 24
     threshold = 3
@@ -126,7 +127,10 @@ def get_task_submission_limit(task_code):
         if task["task_code"] == task_code:
             if task["settings_json"] is not None:
                 settings = json.loads(task["settings_json"])
-                return settings.get("dynalab_hr_diff", hr_diff), settings.get("dynalab_threshold", threshold)
+                return (
+                    settings.get("dynalab_hr_diff", hr_diff),
+                    settings.get("dynalab_threshold", threshold),
+                )
             else:
                 return hr_diff, threshold
     return hr_diff, threshold
@@ -171,11 +175,16 @@ def check_model_name(name):
 
 class SetupConfigHandler:
     def __init__(self, name, root_dir="."):
+        """
+        The funtions only work right if called from root_dir
+        """
         check_model_name(name)
         self.name = name
         self.root_dir = root_dir
+        self.dynalab_dir = ".dynalab"
         self.config_path = os.path.join(
-            self.root_dir, os.path.join(".dynalab", self.name, "setup_config.json")
+            self.root_dir,
+            os.path.join(self.dynalab_dir, self.name, "setup_config.json"),
         )
         self.config_dir = os.path.dirname(self.config_path)
         self.config_fields = {
@@ -187,6 +196,7 @@ class SetupConfigHandler:
             "model_files",
             "exclude",
         }
+        self.submission_dir = ".dynalab_submissions"
 
     def config_exists(self):
         return os.path.exists(self.config_path)
@@ -269,27 +279,33 @@ class SetupConfigHandler:
             assert field in contained_fields, f"Missing config field {key}"
 
     def write_exclude_filelist(self, outfile, model_name, exclude_model=False):
+        def _write_exclude_entry_safe(file, f_obj):
+            if os.path.exists(os.path.join(self.root_dir, file)):
+                f_obj.write(file + "\n")
+
         config = self.load_config()
         with open(outfile, "w") as f:
+            # exclude itself
+            _write_exclude_entry_safe(outfile, f)
+
             # all exclude files and folders
             if config["exclude"]:
                 for ex in config["exclude"]:
-                    f.write(ex + "\n")
+                    _write_exclude_entry_safe(ex, f)
 
             # tmp dir for test
             tmp_dir = os.path.join(self.config_dir, "tmp")
-            if os.path.exists(os.path.join(self.root_dir, tmp_dir)):
-                f.write(tmp_dir + "\n")
+            _write_exclude_entry_safe(tmp_dir, f)
+
+            # past submissions
+            _write_exclude_entry_safe(self.submission_dir, f)
 
             # dir for other models
-            dynalab_dir = ".dynalab"
-            if os.path.exists(os.path.join(self.root_dir, dynalab_dir)):
-                for m in os.listdir(dynalab_dir):
+            if os.path.exists(self.dynalab_dir):
+                for m in os.listdir(self.dynalab_dir):
                     if m != model_name:
-                        f.write(m + "\n")
-
-            f.write(outfile + "\n")
+                        _write_exclude_entry_safe(os.path.join(self.dynalab_dir, m), f)
 
             if exclude_model:
-                f.write(config["checkpoint"] + "\n")
-                f.write(config["handler"] + "\n")
+                _write_exclude_entry_safe(config["checkpoint"], f)
+                _write_exclude_entry_safe(config["handler"], f)
