@@ -13,6 +13,8 @@ import requests
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_submission_limit
+from requests_toolbelt.multipart import encoder
+from datetime import datetime
 
 
 class UploadCommand(BaseCommand):
@@ -45,7 +47,7 @@ class UploadCommand(BaseCommand):
 
         # set up exclude files for tarball
         print("Tarballing the project directory...")
-        tmp_dir = os.path.join(".dynalab", self.args.name, "tmp")
+        tmp_dir = os.path.join(self.config_handler.dynalab_dir, self.args.name, "tmp")
         os.makedirs(tmp_dir, exist_ok=True)
         exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
         self.config_handler.write_exclude_filelist(
@@ -68,12 +70,15 @@ class UploadCommand(BaseCommand):
         # upload to s3
         print("Uploading file to S3...")
         url = f"{DYNABENCH_API}/models/upload/s3"
-        with open(tarball, "rb") as f:
-            files = {"tarball": f}
-            data = {"name": self.args.name, "taskCode": config["task"]}
-            r = requests.post(
-                url, files=files, data=data, headers=AccessToken().get_headers()
+
+        with requests.Session() as session:
+            payload = encoder.MultipartEncoder(
+                {"name": self.args.name, 
+                "taskCode": config["task"], 
+                "tarball": (f"{self.args.name}.tar.gz", open(tarball, "rb"), "application/octet-stream")}
             )
+            headers = {**AccessToken().get_headers(), "Content-Type": payload.content_type}
+            r = session.post(url, data=payload, headers=headers)
             try:
                 r.raise_for_status()
             except requests.exceptions.HTTPError as ex:
@@ -97,11 +102,13 @@ class UploadCommand(BaseCommand):
                     f"on Dynabench."
                 )
             finally:
-                shutil.move(
-                    tarball, os.path.join(os.getcwd(), os.path.basename(tarball))
+                os.makedirs(self.config_handler.submission_dir, exist_ok=True)
+                submission = os.path.join(
+                    self.config_handler.submission_dir, 
+                    datetime.now().strftime("%b-%d-%Y-%H-%M-%S-") + os.path.basename(tarball)
                 )
+                shutil.move(tarball, submission)
                 tmp_tarball_dir.cleanup()
                 print(
-                    f"You can inspect the prepared model submission locally at "
-                    f"{self.args.name}.tar.gz"
+                    f"You can inspect the prepared model submission locally at {submission}"
                 )

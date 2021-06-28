@@ -133,7 +133,7 @@ class InitCommand(BaseCommand):
             else:
                 check_model_name(self.args.rename)
                 if os.path.exists(
-                    os.path.join(self.work_dir, ".dynalab", self.args.rename)
+                    os.path.join(self.work_dir, self.config_handler.dynalab_dir, self.args.rename)
                 ):
                     raise RuntimeError(
                         f"Model {self.args.rename} already exists. "
@@ -141,8 +141,8 @@ class InitCommand(BaseCommand):
                     )
                 else:
                     os.rename(
-                        os.path.join(self.work_dir, ".dynalab", self.args.name),
-                        os.path.join(self.work_dir, ".dynalab", self.args.rename),
+                        os.path.join(self.work_dir, self.config_handler.dynalab_dir, self.args.name),
+                        os.path.join(self.work_dir, self.config_handler.dynalab_dir, self.args.rename),
                     )
                     print(f"Renamed model {self.args.name} to {self.args.rename}")
             return
