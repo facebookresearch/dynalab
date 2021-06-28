@@ -7,14 +7,15 @@ import os
 import shutil
 import subprocess
 import tempfile
-from tqdm import tqdm
+from datetime import datetime
+
 import requests
+from requests_toolbelt.multipart import encoder
+from tqdm import tqdm
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_submission_limit
-from requests_toolbelt.multipart import encoder
-from datetime import datetime
 
 
 class UploadCommand(BaseCommand):
@@ -68,18 +69,40 @@ class UploadCommand(BaseCommand):
                 f"Error in tarballing the current directory {process.stderr}"
             )
         # upload to s3
-        print("Uploading file to S3. Please do not stop the process ...")
+        print(
+            "Uploading files to S3. For large submissions, the progress bar may "
+            "hang a while even after uploading reaches 100%. Please do not kill it..."
+        )
         url = f"{DYNABENCH_API}/models/upload/s3"
 
         payload = encoder.MultipartEncoder(
-            {"name": self.args.name, 
-            "taskCode": config["task"], 
-            "tarball": (f"{self.args.name}.tar.gz", open(tarball, "rb"), "application/octet-stream")}
+            {
+                "name": self.args.name,
+                "taskCode": config["task"],
+                "tarball": (
+                    f"{self.args.name}.tar.gz",
+                    open(tarball, "rb"),
+                    "application/octet-stream",
+                ),
+            }
         )
-        with tqdm(desc="upload", total=payload.len, dynamic_ncols=True, unit='B', unit_scale=True, unit_divisor=1024) as pbar:
-            payload_monitor = encoder.MultipartEncoderMonitor(payload, lambda monitor: pbar.update(monitor.bytes_read - pbar.n))
-            headers = {**AccessToken().get_headers(), "Content-Type": payload.content_type}
+        with tqdm(
+            desc="Uploading",
+            total=payload.len,
+            dynamic_ncols=True,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as pbar:
+            payload_monitor = encoder.MultipartEncoderMonitor(
+                payload, lambda monitor: pbar.update(monitor.bytes_read - pbar.n)
+            )
+            headers = {
+                **AccessToken().get_headers(),
+                "Content-Type": payload.content_type,
+            }
             r = requests.post(url, data=payload_monitor, headers=headers)
+
         try:
             r.raise_for_status()
         except requests.exceptions.HTTPError as ex:
@@ -105,8 +128,9 @@ class UploadCommand(BaseCommand):
         finally:
             os.makedirs(self.config_handler.submission_dir, exist_ok=True)
             submission = os.path.join(
-                self.config_handler.submission_dir, 
-                datetime.now().strftime("%b-%d-%Y-%H-%M-%S-") + os.path.basename(tarball)
+                self.config_handler.submission_dir,
+                datetime.now().strftime("%b-%d-%Y-%H-%M-%S-")
+                + os.path.basename(tarball),
             )
             shutil.move(tarball, submission)
             tmp_tarball_dir.cleanup()
