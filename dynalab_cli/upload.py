@@ -7,7 +7,7 @@ import os
 import shutil
 import subprocess
 import tempfile
-
+from tqdm import tqdm
 import requests
 
 from dynalab.config import DYNABENCH_API
@@ -68,47 +68,48 @@ class UploadCommand(BaseCommand):
                 f"Error in tarballing the current directory {process.stderr}"
             )
         # upload to s3
-        print("Uploading file to S3...")
+        print("Uploading file to S3. Please do not stop the process ...")
         url = f"{DYNABENCH_API}/models/upload/s3"
 
-        with requests.Session() as session:
-            payload = encoder.MultipartEncoder(
-                {"name": self.args.name, 
-                "taskCode": config["task"], 
-                "tarball": (f"{self.args.name}.tar.gz", open(tarball, "rb"), "application/octet-stream")}
-            )
+        payload = encoder.MultipartEncoder(
+            {"name": self.args.name, 
+            "taskCode": config["task"], 
+            "tarball": (f"{self.args.name}.tar.gz", open(tarball, "rb"), "application/octet-stream")}
+        )
+        with tqdm(desc="upload", total=payload.len, dynamic_ncols=True, unit='B', unit_scale=True, unit_divisor=1024) as pbar:
+            payload_monitor = encoder.MultipartEncoderMonitor(payload, lambda monitor: pbar.update(monitor.bytes_read - pbar.n))
             headers = {**AccessToken().get_headers(), "Content-Type": payload.content_type}
-            r = session.post(url, data=payload, headers=headers)
-            try:
-                r.raise_for_status()
-            except requests.exceptions.HTTPError as ex:
-                if r.status_code == 429:
-                    hr_diff, threshold = get_task_submission_limit(config["task"])
-                    print(
-                        f"Failed to submit model {self.args.name} "
-                        f"due to submission limit exceeded. No more than {threshold} "
-                        f"submissions allowed every {hr_diff} hours for task {config['task']}."
-                    )
-                else:
-                    print(f"Failed to submit model due to: {ex}")
-            except Exception as ex:
-                print(f"Failed to submit model due to: {ex}")
-            # TODO: show which email address it is: API to fetch email address?
+            r = requests.post(url, data=payload_monitor, headers=headers)
+        try:
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as ex:
+            if r.status_code == 429:
+                hr_diff, threshold = get_task_submission_limit(config["task"])
+                print(
+                    f"Failed to submit model {self.args.name} "
+                    f"due to submission limit exceeded. No more than {threshold} "
+                    f"submissions allowed every {hr_diff} hours for task {config['task']}."
+                )
             else:
-                print(
-                    f"Your model {self.args.name} has been uploaded to S3 and "
-                    f"will be deployed shortly. "
-                    f"You will get an email notification when your model is available "
-                    f"on Dynabench."
-                )
-            finally:
-                os.makedirs(self.config_handler.submission_dir, exist_ok=True)
-                submission = os.path.join(
-                    self.config_handler.submission_dir, 
-                    datetime.now().strftime("%b-%d-%Y-%H-%M-%S-") + os.path.basename(tarball)
-                )
-                shutil.move(tarball, submission)
-                tmp_tarball_dir.cleanup()
-                print(
-                    f"You can inspect the prepared model submission locally at {submission}"
-                )
+                print(f"Failed to submit model due to: {ex}")
+        except Exception as ex:
+            print(f"Failed to submit model due to: {ex}")
+        # TODO: show which email address it is: API to fetch email address?
+        else:
+            print(
+                f"Your model {self.args.name} has been uploaded to S3 and "
+                f"will be deployed shortly. "
+                f"You will get an email notification when your model is available "
+                f"on Dynabench."
+            )
+        finally:
+            os.makedirs(self.config_handler.submission_dir, exist_ok=True)
+            submission = os.path.join(
+                self.config_handler.submission_dir, 
+                datetime.now().strftime("%b-%d-%Y-%H-%M-%S-") + os.path.basename(tarball)
+            )
+            shutil.move(tarball, submission)
+            tmp_tarball_dir.cleanup()
+            print(
+                f"You can inspect the prepared model submission locally at {submission}"
+            )
