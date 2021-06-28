@@ -54,7 +54,7 @@ $ dynalab-cli test -n <name_of_your_model>
 ```
 If the integrated test is successful, you'll see "Integrated test passed" on the prompt. You can then proceed to the next step. Otherwise, please follow the on-screen instructions to check the log and fix your code / dependencies, and repeat this step until the output is error free.
 
-If there are no errors in the log file apart from workers crashing and the integrated test fails, ensure that you have sufficient resources allocated to docker.
+If the integrated test is unsuccessful, it is possible that your machine lacks the resources to run the deployment environment in docker, or that you do not have sufficient resources allocated to docker. If this happens, your log file will show that workers crashed but will not include an error that references your ```handler.py```. Uploading your model could result in fully functional behavior on our server in this scenario, even though the integrated test fails. However, we would strongly recommend running and passing the integrated test with more allocated resources prior to model upload.
 
 **Third party libraries**
 If your code uses third-party libraries, you may specify them via either `requirements.txt` or `setup.py`. Then call `dynalab-cli init -n <name_of_your_model> --amend` to update the corresponding entry in the config file
