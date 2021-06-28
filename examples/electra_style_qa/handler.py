@@ -54,7 +54,7 @@ class Handler(BaseDynaHandler):
         response = dict()
         example = self._read_data(data)
         response["id"] = example["uid"]
-        response["answer"] = answer if answer != '[CLS]' else ''
+        response["answer"] = answer
         response["conf"] = conf
         response = self.taskIO.sign_response(response, example)
         return [response]

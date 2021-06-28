@@ -8,12 +8,12 @@ model. It was tested with ELECTRA.
 (for ELECTRA, these are ```special_tokens_map.json```,
 ```tokenizer_config.json``` and ```vocab.txt```).
 
-2. Add the provided ```requirements.txt file```.
+2. Add the provided ```requirements.txt``` file.
 
 3. Set up the project via ```dynalab-cli```, remembering to add the model and
 tokenizer files to ```model_files``` with
 ```dynalab-cli init -n <name of your model> --amend```.
 
 For ELECTRA, these are 
-```"["config.json", "special_tokens_map.json", "tokenizer_config.json", "vocab.txt"]```.
+```["config.json", "special_tokens_map.json", "tokenizer_config.json", "vocab.txt"]```.
 
