@@ -25,6 +25,18 @@ data = [
         "context": " ".join([str(x) + "_" for x in range(513)]),
         "question": "Can you handle this length?",
     },
+    {
+        "uid": str(uuid.uuid4()),
+        "context": "The sum of 3 and 2 is 5",
+        "question": "What is the total?",
+        "answer": "5",
+    },
+    {
+        "uid": str(uuid.uuid4()),
+        "context": "The answer to this question is that everyone is doing great today",
+        "question": "What is the answer?",
+        "answer": "great today",
+    },
 ]
 
 
@@ -49,12 +61,16 @@ class TaskIO(BaseTaskIO):
         assert "answer" in response and response["answer"] in data["context"]
         assert response["signed"] == self.generate_response_signature(response, data)
         Nk = 3
+        if "eval_exact" in response:
+            Nk += 1
+        if "eval_f1" in response:
+            Nk += 1
         if "conf" in response:
             assert (
                 response["conf"] >= 0 and response["conf"] <= 1
             ), "Confidence score should be between 0 and 1"
             Nk += 1
-        assert Nk == len(response), f"response should not contain other extra keys"
+        assert Nk >= len(response), f"response should not contain other extra keys"
 
     def parse_signature_input(self, response, data):
         task = "qa"
