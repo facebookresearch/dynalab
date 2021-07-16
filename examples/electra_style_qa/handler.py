@@ -4,6 +4,7 @@ import sys
 
 import torch
 from transformers import (AutoConfig, AutoTokenizer, AutoModelForQuestionAnswering, QuestionAnsweringPipeline)
+from transformers.data.metrics.squad_metrics import compute_exact, compute_f1
 
 from dynalab.handler.base_handler import BaseDynaHandler
 from dynalab.tasks.qa import TaskIO
@@ -32,8 +33,8 @@ class Handler(BaseDynaHandler):
         """
         example = self._read_data(data)
         return {
-            'context': example['context'],
-            'question': example['question']
+            'context': example['context'].strip(),
+            'question': example['question'].strip()
         }
 
     def inference(self, input_data):
@@ -56,6 +57,12 @@ class Handler(BaseDynaHandler):
         response["id"] = example["uid"]
         response["answer"] = answer
         response["conf"] = conf
+
+        if "answer" in example:
+            human_answer = str(example["answer"]).strip()
+            response["eval_f1"] = compute_f1(human_answer, answer)
+            response["eval_exact"] = compute_exact(human_answer, answer)
+
         response = self.taskIO.sign_response(response, example)
         return [response]
 
