@@ -201,7 +201,7 @@ class TestCommand(BaseCommand):
             stdout=subprocess.PIPE,
             universal_newlines=True,
         )
-        
+
         ts_log = os.path.join(tmp_dir, "ts_log.err")
         with open(ts_log, "w") as f:
             f.write(process.stderr)
@@ -240,11 +240,10 @@ class TestCommand(BaseCommand):
         handler_spec.loader.exec_module(handler)
 
         # load taskIO
-        taskIO = importlib.import_module(f"dynalab.tasks.{config['task']}").TaskIO()
-        mock_data = importlib.import_module(f"dynalab.tasks.{config['task']}").data
+        task_io = importlib.import_module(f"dynalab.tasks.task_io").TaskIO(config["task_info_path"])
         try:
-            taskIO.mock_handle_individually(
-                self.args.name, mock_data, self.use_gpu(config), handler.handle
+            task_io.mock_handle_individually(
+                self.args.name, self.use_gpu(config), handler.handle
             )
         except Exception as e:
             raise RuntimeError(f"Local test failed because of: {e}")

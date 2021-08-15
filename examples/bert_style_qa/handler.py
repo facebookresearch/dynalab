@@ -1,13 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import sys
-
 import torch
 from transformers import (AutoConfig, AutoTokenizer,
                           AutoModelForQuestionAnswering)
 
 from dynalab.handler.base_handler import BaseDynaHandler
-from dynalab.tasks.qa import TaskIO
 
 
 class Handler(BaseDynaHandler):
@@ -16,12 +13,13 @@ class Handler(BaseDynaHandler):
         """
         Load model and tokenizer files.
         """
-        self.taskIO = TaskIO()
+
         model_pt_path, _, device_str = self._handler_initialize(context)
         config = AutoConfig.from_pretrained("config.json")
-        self.model = AutoModelForQuestionAnswering.from_pretrained(
-            model_pt_path, config=config
-        )
+        # self.model = AutoModelForQuestionAnswering.from_pretrained(
+        #     model_pt_path, config=config
+        # )
+        self.model = AutoModelForQuestionAnswering.from_config(config=config)
         self.tokenizer = AutoTokenizer.from_pretrained('.')
         self.model.to(torch.device(device_str))
         self.model.eval()
@@ -84,15 +82,16 @@ class Handler(BaseDynaHandler):
         response["id"] = example["uid"]
         response["answer"] = answer if answer != '[CLS]' else ''
         response["conf"] = conf
-        response = self.taskIO.sign_response(response, example)
+        response = self.task_io.sign_response(response, example)
         return [response]
 
 
 _service = Handler()
 
 
-def handle(data, context):
+def handle(data, context, task_info_path):
     if not _service.initialized:
+        _service.initialize_task_io(task_info_path)
         _service.initialize(context)
     if data is None:
         return None

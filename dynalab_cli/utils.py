@@ -114,8 +114,9 @@ def logout():
 def get_tasks():
     r = requests.get(f"{DYNABENCH_API}/tasks/submitable")
     r.raise_for_status()
-    tasks = [task["task_code"] for task in r.json() if task["task_code"]]
-    return tasks
+    tasks = [task for task in r.json() if task["task_code"]]
+    task_codes = [task["task_code"] for task in tasks]
+    return tasks, task_codes
 
 
 def get_task_submission_limit(task_code):
@@ -195,6 +196,7 @@ class SetupConfigHandler:
             "setup",
             "model_files",
             "exclude",
+            "task_info_path"
         }
         self.submission_dir = ".dynalab_submissions"
 
@@ -237,7 +239,8 @@ class SetupConfigHandler:
             assert key not in contained_fields, f"Repeated config field {key}"
             contained_fields.add(key)
             if key == "task":
-                assert config[key] in get_tasks(), f"Invalid task name {config[key]}"
+                tasks, task_codes = get_tasks()
+                assert config[key] in task_codes, f"Invalid task name {config[key]}"
             elif key in ("checkpoint", "handler"):
                 assert check_path(
                     os.path.join(self.root_dir, config[key]),
