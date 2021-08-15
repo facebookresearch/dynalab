@@ -12,7 +12,8 @@ import requests
 from ts.context import Context
 
 from dynalab_cli.utils import SetupConfigHandler
-from dynalab.tasks.io_test_data import get_mock_data
+from dynalab.tasks.io_mock_data import io_mock_data
+from dynalab.tasks.io_verifiers import io_type_verifiers
 
 
 class TaskIO:
@@ -34,31 +35,31 @@ class TaskIO:
         type_to_data_dict = dict()
         max_mock_data_len = 0
 
-        def load_mock_data_for_definitions(definitions, max_mock_data_len_inner):
-            for definition in definitions:
-                def_type = definition["type"]
+        def load_mock_data_for_io_types(io_types, max_mock_data_len_inner):
+            for io_type in io_types:
+                def_type = io_type["type"]
                 if def_type not in type_to_data_dict:
-                    type_to_data_dict[def_type] = get_mock_data(def_type)
+                    type_to_data_dict[def_type] = io_mock_data[def_type]
                 max_mock_data_len_inner = max(max_mock_data_len_inner, len(type_to_data_dict[def_type]))
 
             return max_mock_data_len_inner
 
-        max_mock_data_len = load_mock_data_for_definitions(self.task_info["io_def"]["input"], max_mock_data_len)
-        max_mock_data_len = load_mock_data_for_definitions(self.task_info["io_def"]["context"], max_mock_data_len)
+        max_mock_data_len = load_mock_data_for_io_types(self.task_info["io_def"]["input"], max_mock_data_len)
+        max_mock_data_len = load_mock_data_for_io_types(self.task_info["io_def"]["context"], max_mock_data_len)
 
         mock_data = []
 
-        def add_mock_data_for_definitions(definitions, datum):
-            for definition in definitions:
-                data_for_input_type = type_to_data_dict[definition["type"]]
-                datum[definition["name"]] = data_for_input_type[i % len(data_for_input_type)]
+        def add_mock_data_for_io_types(io_types, datum):
+            for io_type in io_types:
+                data_for_input_type = type_to_data_dict[io_type["type"]]
+                datum[io_type["name"]] = data_for_input_type[i % len(data_for_input_type)]
 
         for i in range(max_mock_data_len):
             datum = {
                 "uid": str(uuid.uuid4())
             }
-            add_mock_data_for_definitions(self.task_info["io_def"]["input"], datum)
-            add_mock_data_for_definitions(self.task_info["io_def"]["context"], datum)
+            add_mock_data_for_io_types(self.task_info["io_def"]["input"], datum)
+            add_mock_data_for_io_types(self.task_info["io_def"]["context"], datum)
             mock_data.append(datum)
 
         return mock_data
@@ -175,14 +176,45 @@ class TaskIO:
         return signature
 
     def sign_response(self, response, data):
-        response["signed"] = self.generate_response_signature(response, data)
-        return response
+        response["signature"] = self.generate_response_signature(response, data)
 
     def verify_response(self, response, data):
         """
         Defines task output by verifying a response satisfies all requirements
         """
-        raise NotImplementedError
+        assert len(response) == 3
+        assert "id" in response and response["id"] == data["uid"]
+        assert response["signature"] == self.generate_response_signature(response, data)
+
+        model_response = response["model_response"]
+        targets = self.task_info["io_def"]["target"]
+
+        missing_target_fields = len(targets)
+        extra_fields = len(model_response)
+
+        target_names = [target["name"] for target in targets]
+
+        outputs = self.task_info["io_def"]["output"]
+        name_to_constructor_args = {}
+        for output in outputs:
+            name_to_constructor_args[output["name"]] = output["constructor_args"]
+
+        for output in outputs:
+            output_name = output["name"]
+            if output_name in model_response:
+                extra_fields -= 1
+                if output_name in target_names:
+                    missing_target_fields -= 1
+
+                io_type_verifiers[output["type"]](
+                    model_response[output_name],
+                    name_to_constructor_args[output_name],
+                    name_to_constructor_args,
+                    data
+                )
+
+        assert missing_target_fields == 0
+        assert extra_fields == 0
 
     def parse_signature_input(self, response, data):
         """
@@ -191,15 +223,15 @@ class TaskIO:
 
         task = self.task_info["task"]
 
-        def add_definitions(definitions, container_obj, value_src):
-            for definition in definitions:
-                name = definition["name"]
+        def add_io_types(io_types, container_obj, value_src):
+            for io_type in io_types:
+                name = io_type["name"]
                 container_obj[name] = value_src[name]
 
         inputs, outputs = dict(), dict()
 
-        add_definitions(self.task_info["io_def"]["input"], inputs, data)
-        add_definitions(self.task_info["io_def"]["context"], inputs, data)
-        add_definitions(self.task_info["io_def"]["output"], outputs, response)
+        add_io_types(self.task_info["io_def"]["input"], inputs, data)
+        add_io_types(self.task_info["io_def"]["context"], inputs, data)
+        add_io_types(self.task_info["io_def"]["output"], outputs, response["model_response"])
 
         return task, inputs, outputs

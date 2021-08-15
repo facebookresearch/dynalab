@@ -77,12 +77,13 @@ class Handler(BaseDynaHandler):
         Post process inference output into a response.
         """
         answer, conf = inference_output
-        response = dict()
+        response, model_response = dict(), dict()
         example = self._read_data(data)
         response["id"] = example["uid"]
-        response["answer"] = answer if answer != '[CLS]' else ''
-        response["conf"] = conf
-        response = self.task_io.sign_response(response, example)
+        model_response["answer"] = answer if answer != '[CLS]' else ''
+        model_response["conf"] = conf
+        response["model_response"] = model_response
+        self.task_io.sign_response(response, example)
         return [response]
 
 
