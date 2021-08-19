@@ -226,14 +226,13 @@ class InitCommand(BaseCommand):
 
         task_info = {"io_def": task_io, "task": value}
 
-        task_info_path = os.path.join(self.config_handler.root_dir, self.config_handler.dynalab_dir, self.config_handler.name, "task_info.json")
+        task_info_path = os.path.join(self.config_handler.root_dir, self.config_handler.dynalab_dir, "task_info.json")
         task_io_dir = os.path.dirname(task_info_path)
         os.makedirs(task_io_dir, exist_ok=True)
         with open(task_info_path, "w+") as f:
             f.write(json.dumps(task_info, indent=4))
 
         self.update_field(key, value)
-        self.update_field("task_info_path", task_info_path)
 
     def initialize_path(self, key, value):
         if check_path(value, root_dir=self.root_dir):
@@ -341,8 +340,7 @@ class InitCommand(BaseCommand):
                 "handler.py.template",
             )
             with open(template) as f:
-                content = f.read()
-                handler_content = content.format(your_task=self.config["task"])
+                handler_content = f.read()
             with open(filepath, "w") as f:
                 f.write(handler_content)
         else:

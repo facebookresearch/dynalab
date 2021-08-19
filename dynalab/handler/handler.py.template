@@ -17,7 +17,7 @@ import sys
 import torch
 
 from dynalab.handler.base_handler import BaseDynaHandler, ROOTPATH
-from dynalab.tasks.{your_task} import TaskIO
+from dynalab.tasks.task_io import TaskIO
 
 
 # NOTE: use the following line to import modules from your repo
@@ -37,9 +37,8 @@ class Handler(BaseDynaHandler):
         """
         Load model and read relevant files here.
         """
-        config = json.load(
-            os.path.join(model_file_dir, "config")
-        )
+        with open(os.path.join(model_file_dir, "config")) as f:
+            config = json.load(f)
         self.model = MyModel(config)
         self.model.load_state_dict(torch.load(model_pt_path, map_location=device_str))
         self.model.to(torch.device(device_str))
@@ -60,8 +59,9 @@ class Handler(BaseDynaHandler):
         example is a always json object. Yo can see what an example looks
         in a Python interpreter by
         ```
-        >>> from dynalab.tasks import {your_task}
-        >>> {your_task}.data[0]
+        >>> from dynalab.tasks.task_io import TaskIO
+        >>> task_io = TaskIO()
+        >>> task_io.mock_datapoints[0]
         ```
         """
         context = example["context"]
@@ -92,20 +92,22 @@ class Handler(BaseDynaHandler):
         response should be a single element list of a json
         the response format will need to pass the validation in
         ```
-        dynalab.tasks.{your_task}.TaskIO().verify_response(response, data)
+        dynalab.tasks.TaskIO().verify_response(response, data)
         ```
         """
-        response = dict()
+        response, model_response = dict(), dict()
+        answer, conf = inference_output
         example = self._read_data(data)
         # ############TODO 4: postprocess response ########
         """
         Add attributes to response
         """
         response["id"] = example["uid"]
-        response["label"] = inference_output > 0.5
-        response["prob"] = inference_output
+        model_response["answer"] = answer if answer != '[CLS]' else ''
+        model_response["conf"] = conf
+        response["model_response"] = model_response
         # #################################################
-        response = self.taskIO.sign_response(response, example)
+        self.taskIO.sign_response(response, example)
         return [response]
 
 

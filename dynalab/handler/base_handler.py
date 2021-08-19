@@ -7,8 +7,6 @@ import os
 
 import torch
 from ts.torch_handler.base_handler import BaseHandler
-from dynalab.tasks.task_io import TaskIO
-
 
 ROOTPATH = "/home/model-server/code"
 
@@ -17,9 +15,6 @@ class BaseDynaHandler(BaseHandler):
     def __init__(self):
         super().__init__()
         self.initialized = False
-
-    def initialize_task_io(self, task_info_path):
-        self.task_io = TaskIO(task_info_path)
 
     def _handler_initialize(self, context):
         """

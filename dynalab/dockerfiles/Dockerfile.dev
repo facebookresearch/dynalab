@@ -52,4 +52,5 @@ RUN python -m pip install --force-reinstall git+git://github.com/facebookresearc
 
 ENV model_name=${model_name}
 ENV PYTHONIOENCODING=UTF-8
+COPY ${add_dir}/task_info.json /home/model-server/code/task_info.json
 ENTRYPOINT /usr/local/bin/dev-entrypoint.sh ${model_name}

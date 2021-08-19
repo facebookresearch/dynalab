@@ -18,17 +18,29 @@ from dynalab.tasks.io_verifiers import io_type_verifiers
 
 class TaskIO:
 
-    def __init__(self, task_info_path):
-        if os.path.exists(task_info_path):
-            with open(task_info_path) as f:
-                self.task_info = json.load(f)
-        else:
-            raise RuntimeError(
-                f"No task io found. Please call dynalab-cli init to initiate this repo."
-            )
+    def __init__(self, task_info_path=None):
 
-        self.task_info_path = task_info_path
+        if task_info_path is not None:
+            self.task_info = TaskIO.get_json_from_path(task_info_path)
+        else:
+            paths_to_check = ["./.dynalab/task_info.json", "/home/model-server/code/task_info.json"]
+            for path in paths_to_check:
+                self.task_info = TaskIO.get_json_from_path(path)
+                if self.task_info is not None:
+                    break
+
+        if self.task_info is None:
+            raise RuntimeError(f"No task io found.")
+
         self.mock_datapoints = self.initialize_mock_data()
+
+    @staticmethod
+    def get_json_from_path(path):
+        if os.path.exists(path):
+            with open(path) as f:
+                return json.load(f)
+        else:
+            return None
 
     def initialize_mock_data(self):
 
@@ -91,7 +103,7 @@ class TaskIO:
             print(f"Mock input data is: ", data)
             mock_data = [{"body": data}]
             print("Getting model response ...")
-            responses = handle_func(mock_data, mock_context, self.task_info_path)
+            responses = handle_func(mock_data, mock_context)
             assert len(responses) == 1, "The model should return one torchserve sample !"
             response = responses[0]
             print(f"Your model response is {response}")
@@ -124,7 +136,7 @@ class TaskIO:
             }
         ]
         print("Getting model response ...")
-        responses = handle_func(mock_data, mock_context, self.task_info_path)
+        responses = handle_func(mock_data, mock_context)
         assert len(responses) == 1, "The model should return one torchserve sample !"
 
         try:
@@ -226,7 +238,8 @@ class TaskIO:
         def add_io_types(io_types, container_obj, value_src):
             for io_type in io_types:
                 name = io_type["name"]
-                container_obj[name] = value_src[name]
+                if name in value_src:
+                    container_obj[name] = value_src[name]
 
         inputs, outputs = dict(), dict()
 

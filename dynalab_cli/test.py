@@ -159,6 +159,11 @@ class TestCommand(BaseCommand):
             os.path.join(tmp_dir, "dev-docker-entrypoint.sh"),
         )
 
+        shutil.copyfile(
+            "/Users/anmol17/Desktop/dynalab/examples/test-model/.dynalab/task_info.json",
+            os.path.join(tmp_dir, "task_info.json"),
+        )
+
         # build docker
         repository_name = self.args.name.lower()
         print("Building docker image...")
@@ -240,7 +245,7 @@ class TestCommand(BaseCommand):
         handler_spec.loader.exec_module(handler)
 
         # load taskIO
-        task_io = importlib.import_module(f"dynalab.tasks.task_io").TaskIO(config["task_info_path"])
+        task_io = importlib.import_module(f"dynalab.tasks.task_io").TaskIO()
         try:
             task_io.mock_handle_individually(
                 self.args.name, self.use_gpu(config), handler.handle

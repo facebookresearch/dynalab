@@ -196,7 +196,6 @@ class SetupConfigHandler:
             "setup",
             "model_files",
             "exclude",
-            "task_info_path"
         }
         self.submission_dir = ".dynalab_submissions"
 
