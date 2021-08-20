@@ -17,10 +17,9 @@ class Handler(BaseDynaHandler):
         self.task_io = TaskIO()
         model_pt_path, _, device_str = self._handler_initialize(context)
         config = AutoConfig.from_pretrained("config.json")
-        # self.model = AutoModelForQuestionAnswering.from_pretrained(
-        #     model_pt_path, config=config
-        # )
-        self.model = AutoModelForQuestionAnswering.from_config(config=config)
+        self.model = AutoModelForQuestionAnswering.from_pretrained(
+            model_pt_path, config=config
+        )
         self.tokenizer = AutoTokenizer.from_pretrained('.')
         self.model.to(torch.device(device_str))
         self.model.eval()
@@ -80,7 +79,7 @@ class Handler(BaseDynaHandler):
         answer, conf = inference_output
         response, model_response = dict(), dict()
         example = self._read_data(data)
-        response["id"] = example["uid"]
+        response["id"] = example["uuid"]
         model_response["answer"] = answer if answer != '[CLS]' else ''
         model_response["conf"] = conf
         response["model_response"] = model_response

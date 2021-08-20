@@ -56,8 +56,8 @@ class TaskIO:
 
             return max_mock_data_len_inner
 
-        max_mock_data_len = load_mock_data_for_io_types(self.task_info["io_def"]["input"], max_mock_data_len)
-        max_mock_data_len = load_mock_data_for_io_types(self.task_info["io_def"]["context"], max_mock_data_len)
+        max_mock_data_len = load_mock_data_for_io_types(self.task_info["annotation_config_json"]["input"], max_mock_data_len)
+        max_mock_data_len = load_mock_data_for_io_types(self.task_info["annotation_config_json"]["context"], max_mock_data_len)
 
         mock_data = []
 
@@ -68,10 +68,10 @@ class TaskIO:
 
         for i in range(max_mock_data_len):
             datum = {
-                "uid": str(uuid.uuid4())
+                "uuid": str(uuid.uuid4())
             }
-            add_mock_data_for_io_types(self.task_info["io_def"]["input"], datum)
-            add_mock_data_for_io_types(self.task_info["io_def"]["context"], datum)
+            add_mock_data_for_io_types(self.task_info["annotation_config_json"]["input"], datum)
+            add_mock_data_for_io_types(self.task_info["annotation_config_json"]["context"], datum)
             mock_data.append(datum)
 
         return mock_data
@@ -195,18 +195,18 @@ class TaskIO:
         Defines task output by verifying a response satisfies all requirements
         """
         assert len(response) == 3
-        assert "id" in response and response["id"] == data["uid"]
+        assert "id" in response and response["id"] == data["uuid"]
         assert response["signature"] == self.generate_response_signature(response, data)
 
         model_response = response["model_response"]
-        targets = self.task_info["io_def"]["target"]
+        targets = self.task_info["annotation_config_json"]["target"]
 
         missing_target_fields = len(targets)
         extra_fields = len(model_response)
 
         target_names = [target["name"] for target in targets]
 
-        outputs = self.task_info["io_def"]["output"]
+        outputs = self.task_info["annotation_config_json"]["output"]
         name_to_constructor_args = {}
         for output in outputs:
             name_to_constructor_args[output["name"]] = output["constructor_args"]
@@ -243,8 +243,8 @@ class TaskIO:
 
         inputs, outputs = dict(), dict()
 
-        add_io_types(self.task_info["io_def"]["input"], inputs, data)
-        add_io_types(self.task_info["io_def"]["context"], inputs, data)
-        add_io_types(self.task_info["io_def"]["output"], outputs, response["model_response"])
+        add_io_types(self.task_info["annotation_config_json"]["input"], inputs, data)
+        add_io_types(self.task_info["annotation_config_json"]["context"], inputs, data)
+        add_io_types(self.task_info["annotation_config_json"]["output"], outputs, response["model_response"])
 
         return task, inputs, outputs

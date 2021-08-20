@@ -21,7 +21,7 @@ class Handler(BaseDynaHandler):
         device = -1 if device_str == 'cpu' else int(device_str[-1])
         self.pipeline = QuestionAnsweringPipeline(
             model=AutoModelForQuestionAnswering.from_pretrained(model_pt_path, config=config),
-            tokenizer=AutoTokenizer.from_pretrained('.'), 
+            tokenizer=AutoTokenizer.from_pretrained('.'),
             device=device
         )
         self.initialized = True
@@ -53,7 +53,7 @@ class Handler(BaseDynaHandler):
 
         response = dict()
         example = self._read_data(data)
-        response["id"] = example["uid"]
+        response["id"] = example["uuid"]
         response["answer"] = answer
         response["conf"] = conf
         response = self.taskIO.sign_response(response, example)

@@ -102,7 +102,7 @@ class Handler(BaseDynaHandler):
         """
         Add attributes to response
         """
-        response["id"] = example["uid"]
+        response["id"] = example["uuid"]
         model_response["answer"] = answer if answer != '[CLS]' else ''
         model_response["conf"] = conf
         response["model_response"] = model_response

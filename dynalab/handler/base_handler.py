@@ -8,6 +8,7 @@ import os
 import torch
 from ts.torch_handler.base_handler import BaseHandler
 
+
 ROOTPATH = "/home/model-server/code"
 
 

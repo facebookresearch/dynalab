@@ -1,4 +1,4 @@
-from dynalab.tasks.io_types import IOTypeEnum
+from dynalab.tasks.io_types import AnnotationTypeEnum
 
 
 string_mock_data = [
@@ -8,11 +8,11 @@ string_mock_data = [
 ]
 
 io_mock_data = {
-    IOTypeEnum.image_url.name: [],
-    IOTypeEnum.string.name: string_mock_data,
-    IOTypeEnum.context_string_selection.name: [],
-    IOTypeEnum.conf.name: [],
-    IOTypeEnum.multiple_choice_probs.name: [],
-    IOTypeEnum.multiple_choice.name: [],
-    IOTypeEnum.goal_message_multiple_choice.name: [],
+    AnnotationTypeEnum.image_url.name: [],
+    AnnotationTypeEnum.string.name: string_mock_data,
+    AnnotationTypeEnum.context_string_selection.name: [],
+    AnnotationTypeEnum.conf.name: [],
+    AnnotationTypeEnum.multiclass_probs.name: [],
+    AnnotationTypeEnum.multiclass.name: [],
+    AnnotationTypeEnum.target_label.name: [],
 }

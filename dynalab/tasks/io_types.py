@@ -1,12 +1,12 @@
 import enum
 
 
-class IOTypeEnum(enum.Enum):
+class AnnotationTypeEnum(enum.Enum):
     image_url = "image_url"
     string = "string"
     context_string_selection = "context_string_selection"
     conf = "conf"
-    multiple_choice_probs = "multiple_choice_probs"
-    multiple_choice = "multiple_choice"
-    goal_message_multiple_choice = "goal_message_multiple_choice"
+    multiclass_probs = "multiclass_probs"
+    multiclass = "multiclass"
+    target_label = "target_label"
 
