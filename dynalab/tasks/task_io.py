@@ -12,7 +12,7 @@ import requests
 from ts.context import Context
 
 from dynalab_cli.utils import SetupConfigHandler
-from dynalab.tasks.io_mock_data import io_mock_data
+from dynalab.tasks.io_mock_data import io_mock_data_generators
 from dynalab.tasks.io_verifiers import io_type_verifiers
 
 
@@ -32,7 +32,13 @@ class TaskIO:
         if self.task_info is None:
             raise RuntimeError(f"No task io found.")
 
-        self.mock_datapoints = self.initialize_mock_data()
+        self.inputs_without_targets = []
+        self.targets = []
+        self.initialize_inputs_and_targets()
+
+        self.mock_datapoints = []
+        self.initialize_mock_data()
+
 
     @staticmethod
     def get_json_from_path(path):
@@ -42,24 +48,45 @@ class TaskIO:
         else:
             return None
 
-    def initialize_mock_data(self):
+    def initialize_inputs_and_targets(self):
+        inputs_with_targets = self.task_info["annotation_config_json"]["input"]
+        outputs_with_targets = self.task_info["annotation_config_json"]["output"]
 
+        output_names = set()
+
+        for output_datum in outputs_with_targets:
+            output_names.add(output_datum["name"])
+
+        for input_datum in inputs_with_targets:
+            name = input_datum["name"]
+            if name in output_names:
+                self.targets.append(input_datum)
+            else:
+                self.inputs_without_targets.append(input_datum)
+
+    def initialize_mock_data(self):
         type_to_data_dict = dict()
+        name_to_annotation_dict = dict()
         max_mock_data_len = 0
+
+        def initialize_name_to_annotation_dict(io_types):
+            for io_type in io_types:
+                name_to_annotation_dict[io_type["name"]] = io_type
+
+        initialize_name_to_annotation_dict(self.inputs_without_targets)
+        initialize_name_to_annotation_dict(self.task_info["annotation_config_json"]["context"])
 
         def load_mock_data_for_io_types(io_types, max_mock_data_len_inner):
             for io_type in io_types:
                 def_type = io_type["type"]
                 if def_type not in type_to_data_dict:
-                    type_to_data_dict[def_type] = io_mock_data[def_type]
+                    type_to_data_dict[def_type] = io_mock_data_generators[def_type](io_type, name_to_annotation_dict)
                 max_mock_data_len_inner = max(max_mock_data_len_inner, len(type_to_data_dict[def_type]))
 
             return max_mock_data_len_inner
 
-        max_mock_data_len = load_mock_data_for_io_types(self.task_info["annotation_config_json"]["input"], max_mock_data_len)
+        max_mock_data_len = load_mock_data_for_io_types(self.inputs_without_targets, max_mock_data_len)
         max_mock_data_len = load_mock_data_for_io_types(self.task_info["annotation_config_json"]["context"], max_mock_data_len)
-
-        mock_data = []
 
         def add_mock_data_for_io_types(io_types, datum):
             for io_type in io_types:
@@ -70,11 +97,9 @@ class TaskIO:
             datum = {
                 "uuid": str(uuid.uuid4())
             }
-            add_mock_data_for_io_types(self.task_info["annotation_config_json"]["input"], datum)
+            add_mock_data_for_io_types(self.inputs_without_targets, datum)
             add_mock_data_for_io_types(self.task_info["annotation_config_json"]["context"], datum)
-            mock_data.append(datum)
-
-        return mock_data
+            self.mock_datapoints.append(datum)
 
     @staticmethod
     def _get_mock_context(model_name: str, use_gpu: bool):
@@ -199,12 +224,11 @@ class TaskIO:
         assert response["signature"] == self.generate_response_signature(response, data)
 
         model_response = response["model_response"]
-        targets = self.task_info["annotation_config_json"]["target"]
 
-        missing_target_fields = len(targets)
+        missing_target_fields = len(self.targets)
         extra_fields = len(model_response)
 
-        target_names = [target["name"] for target in targets]
+        target_names = [target["name"] for target in self.targets]
 
         outputs = self.task_info["annotation_config_json"]["output"]
         name_to_constructor_args = {}
@@ -243,7 +267,7 @@ class TaskIO:
 
         inputs, outputs = dict(), dict()
 
-        add_io_types(self.task_info["annotation_config_json"]["input"], inputs, data)
+        add_io_types(self.inputs_without_targets, inputs, data)
         add_io_types(self.task_info["annotation_config_json"]["context"], inputs, data)
         add_io_types(self.task_info["annotation_config_json"]["output"], outputs, response["model_response"])
 
