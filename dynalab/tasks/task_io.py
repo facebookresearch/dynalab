@@ -11,19 +11,21 @@ import uuid
 import requests
 from ts.context import Context
 
+from dynalab.tasks.annotation_mock_data import annotation_mock_data_generators
+from dynalab.tasks.annotation_verifiers import annotation_verifiers
 from dynalab_cli.utils import SetupConfigHandler
-from dynalab.tasks.io_mock_data import io_mock_data_generators
-from dynalab.tasks.io_verifiers import io_type_verifiers
 
 
 class TaskIO:
-
     def __init__(self, task_info_path=None):
 
         if task_info_path is not None:
             self.task_info = TaskIO.get_json_from_path(task_info_path)
         else:
-            paths_to_check = ["./.dynalab/task_info.json", "/home/model-server/code/task_info.json"]
+            paths_to_check = [
+                "./.dynalab/task_info.json",
+                "/home/model-server/code/task_info.json",
+            ]
             for path in paths_to_check:
                 self.task_info = TaskIO.get_json_from_path(path)
                 if self.task_info is not None:
@@ -38,7 +40,6 @@ class TaskIO:
 
         self.mock_datapoints = []
         self.initialize_mock_data()
-
 
     @staticmethod
     def get_json_from_path(path):
@@ -69,36 +70,48 @@ class TaskIO:
         name_to_annotation_dict = dict()
         max_mock_data_len = 0
 
-        def initialize_name_to_annotation_dict(io_types):
-            for io_type in io_types:
-                name_to_annotation_dict[io_type["name"]] = io_type
+        def initialize_name_to_annotation_dict(annotations):
+            for annotation in annotations:
+                name_to_annotation_dict[annotation["name"]] = annotation
 
         initialize_name_to_annotation_dict(self.inputs_without_targets)
-        initialize_name_to_annotation_dict(self.task_info["annotation_config_json"]["context"])
+        initialize_name_to_annotation_dict(
+            self.task_info["annotation_config_json"]["context"]
+        )
 
-        def load_mock_data_for_io_types(io_types, max_mock_data_len_inner):
-            for io_type in io_types:
-                def_type = io_type["type"]
+        def load_mock_data_for_annotations(annotations, max_mock_data_len_inner):
+            for annotation in annotations:
+                def_type = annotation["type"]
                 if def_type not in type_to_data_dict:
-                    type_to_data_dict[def_type] = io_mock_data_generators[def_type](io_type, name_to_annotation_dict)
-                max_mock_data_len_inner = max(max_mock_data_len_inner, len(type_to_data_dict[def_type]))
+                    type_to_data_dict[def_type] = annotation_mock_data_generators[
+                        def_type
+                    ](annotation, name_to_annotation_dict)
+                max_mock_data_len_inner = max(
+                    max_mock_data_len_inner, len(type_to_data_dict[def_type])
+                )
 
             return max_mock_data_len_inner
 
-        max_mock_data_len = load_mock_data_for_io_types(self.inputs_without_targets, max_mock_data_len)
-        max_mock_data_len = load_mock_data_for_io_types(self.task_info["annotation_config_json"]["context"], max_mock_data_len)
+        max_mock_data_len = load_mock_data_for_annotations(
+            self.inputs_without_targets, max_mock_data_len
+        )
+        max_mock_data_len = load_mock_data_for_annotations(
+            self.task_info["annotation_config_json"]["context"], max_mock_data_len
+        )
 
-        def add_mock_data_for_io_types(io_types, datum):
-            for io_type in io_types:
-                data_for_input_type = type_to_data_dict[io_type["type"]]
-                datum[io_type["name"]] = data_for_input_type[i % len(data_for_input_type)]
+        def add_mock_data_for_annotations(annotations, datum):
+            for annotation in annotations:
+                data_for_input_type = type_to_data_dict[annotation["type"]]
+                datum[annotation["name"]] = data_for_input_type[
+                    i % len(data_for_input_type)
+                ]
 
         for i in range(max_mock_data_len):
-            datum = {
-                "uuid": str(uuid.uuid4())
-            }
-            add_mock_data_for_io_types(self.inputs_without_targets, datum)
-            add_mock_data_for_io_types(self.task_info["annotation_config_json"]["context"], datum)
+            datum = {"uuid": str(uuid.uuid4())}
+            add_mock_data_for_annotations(self.inputs_without_targets, datum)
+            add_mock_data_for_annotations(
+                self.task_info["annotation_config_json"]["context"], datum
+            )
             self.mock_datapoints.append(datum)
 
     @staticmethod
@@ -118,9 +131,7 @@ class TaskIO:
         )
         return context
 
-    def mock_handle_individually(
-        self, model_name: str, use_gpu: bool, handle_func
-    ):
+    def mock_handle_individually(self, model_name: str, use_gpu: bool, handle_func):
         mock_context = TaskIO._get_mock_context(model_name, use_gpu)
         N = len(self.mock_datapoints)
         for i, data in enumerate(self.mock_datapoints):
@@ -129,7 +140,9 @@ class TaskIO:
             mock_data = [{"body": data}]
             print("Getting model response ...")
             responses = handle_func(mock_data, mock_context)
-            assert len(responses) == 1, "The model should return one torchserve sample !"
+            assert (
+                len(responses) == 1
+            ), "The model should return one torchserve sample !"
             response = responses[0]
             print(f"Your model response is {response}")
             if isinstance(response, str):
@@ -148,15 +161,14 @@ class TaskIO:
             print(f"Verifying model response ...")
             self.verify_response(response, data)
 
-    def mock_handle_with_batching(
-        self, model_name: str, use_gpu: bool, handle_func
-    ):
+    def mock_handle_with_batching(self, model_name: str, use_gpu: bool, handle_func):
         mock_context = TaskIO._get_mock_context(model_name, use_gpu)
         N = len(self.mock_datapoints)
         mock_data = [
             {
                 "body": "\n".join(
-                    json.dumps(sample, ensure_ascii=False) for sample in self.mock_datapoints
+                    json.dumps(sample, ensure_ascii=False)
+                    for sample in self.mock_datapoints
                 )
             }
         ]
@@ -242,11 +254,11 @@ class TaskIO:
                 if output_name in target_names:
                     missing_target_fields -= 1
 
-                io_type_verifiers[output["type"]](
+                annotation_verifiers[output["type"]](
                     model_response[output_name],
                     name_to_constructor_args[output_name],
                     name_to_constructor_args,
-                    data
+                    data,
                 )
 
         assert missing_target_fields == 0
@@ -259,16 +271,22 @@ class TaskIO:
 
         task = self.task_info["task"]
 
-        def add_io_types(io_types, container_obj, value_src):
-            for io_type in io_types:
-                name = io_type["name"]
+        def add_annotations(annotations, container_obj, value_src):
+            for annotation in annotations:
+                name = annotation["name"]
                 if name in value_src:
                     container_obj[name] = value_src[name]
 
         inputs, outputs = dict(), dict()
 
-        add_io_types(self.inputs_without_targets, inputs, data)
-        add_io_types(self.task_info["annotation_config_json"]["context"], inputs, data)
-        add_io_types(self.task_info["annotation_config_json"]["output"], outputs, response["model_response"])
+        add_annotations(self.inputs_without_targets, inputs, data)
+        add_annotations(
+            self.task_info["annotation_config_json"]["context"], inputs, data
+        )
+        add_annotations(
+            self.task_info["annotation_config_json"]["output"],
+            outputs,
+            response["model_response"],
+        )
 
         return task, inputs, outputs

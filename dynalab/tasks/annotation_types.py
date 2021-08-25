@@ -9,4 +9,3 @@ class AnnotationTypeEnum(enum.Enum):
     multiclass_probs = "multiclass_probs"
     multiclass = "multiclass"
     target_label = "target_label"
-

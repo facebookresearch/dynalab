@@ -3,8 +3,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
 import json
+import os
 import subprocess
 
 from dynalab_cli import BaseCommand
@@ -41,11 +41,7 @@ class InitCommand(BaseCommand):
         )
         tasks, task_codes = get_tasks()
         init_parser.add_argument(
-            "-t",
-            "--task",
-            type=str,
-            choices=task_codes,
-            help="Name of the task"
+            "-t", "--task", type=str, choices=task_codes, help="Name of the task"
         )
         init_parser.add_argument(
             "-d",
@@ -225,12 +221,18 @@ class InitCommand(BaseCommand):
             )
             value = input(message)
 
-        task_io = [task for task in tasks if task["task_code"] == value][0]["annotation_config_json"]
+        task_io = [task for task in tasks if task["task_code"] == value][0][
+            "annotation_config_json"
+        ]
         task_io = json.loads(task_io)
 
         task_info = {"annotation_config_json": task_io, "task": value}
 
-        task_info_path = os.path.join(self.config_handler.root_dir, self.config_handler.dynalab_dir, "task_info.json")
+        task_info_path = os.path.join(
+            self.config_handler.root_dir,
+            self.config_handler.dynalab_dir,
+            "task_info.json",
+        )
         task_io_dir = os.path.dirname(task_info_path)
         os.makedirs(task_io_dir, exist_ok=True)
         with open(task_info_path, "w+") as f:

@@ -1,12 +1,14 @@
 import random
 
-from dynalab.tasks.io_types import AnnotationTypeEnum
+from dynalab.tasks.annotation_types import AnnotationTypeEnum
 
 
 def get_source_data(annotation, name_to_annotation_dict):
     source_reference_name = annotation["constructor_args"]["reference_name"]
     source_annotation = name_to_annotation_dict[source_reference_name]
-    source_data = io_mock_data_generators[source_annotation["type"]](source_annotation, name_to_annotation_dict)
+    source_data = annotation_mock_data_generators[source_annotation["type"]](
+        source_annotation, name_to_annotation_dict
+    )
     return source_data
 
 
@@ -18,7 +20,7 @@ def generate_string_mock_data(annotation, name_to_annotation_dict):
     return [
         "It is a good day",
         "Let's try a utf-8 like hackamore from j?\u00a1quima;",
-        " ".join([str(x) + "_" for x in range(513)])
+        " ".join([str(x) + "_" for x in range(513)]),
     ]
 
 
@@ -65,7 +67,7 @@ def generate_target_label_mock_data(annotation, name_to_annotation_dict):
     return labels
 
 
-io_mock_data_generators = {
+annotation_mock_data_generators = {
     AnnotationTypeEnum.image_url.name: generate_image_url_mock_data,
     AnnotationTypeEnum.string.name: generate_string_mock_data,
     AnnotationTypeEnum.context_string_selection.name: generate_context_string_selection_mock_data,
