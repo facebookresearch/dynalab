@@ -31,7 +31,7 @@ class Handler(BaseDynaHandler):
         load model and extra files
         """
         model_pt_path, model_file_dir, device_str = self._handler_initialize(context)
-        self.taskIO = TaskIO()
+        self.taskIO = TaskIO("{your_task}")
 
         # ############TODO 1: Initialize model ############
         """
@@ -60,7 +60,7 @@ class Handler(BaseDynaHandler):
         in a Python interpreter by
         ```
         >>> from dynalab.tasks.task_io import TaskIO
-        >>> task_io = TaskIO()
+        >>> task_io = TaskIO("{your_task}")
         >>> task_io.mock_datapoints[0]
         ```
         """
@@ -92,7 +92,7 @@ class Handler(BaseDynaHandler):
         response should be a single element list of a json
         the response format will need to pass the validation in
         ```
-        dynalab.tasks.TaskIO().verify_response(response, data)
+        dynalab.tasks.TaskIO("{your_task}").verify_response(response, data)
         ```
         """
         response, model_response = dict(), dict()
@@ -102,7 +102,7 @@ class Handler(BaseDynaHandler):
         """
         Add attributes to response
         """
-        response["id"] = example["uuid"]
+        response["id"] = example["uid"]
         model_response["answer"] = answer if answer != '[CLS]' else ''
         model_response["conf"] = conf
         response["model_response"] = model_response

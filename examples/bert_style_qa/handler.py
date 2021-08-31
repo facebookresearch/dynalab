@@ -71,7 +71,7 @@ class Handler(BaseDynaHandler):
         answer, conf = inference_output
         response, model_response = dict(), dict()
         example = self._read_data(data)
-        response["id"] = example["uuid"]
+        response["id"] = example["uid"]
         model_response["answer"] = answer if answer != "[CLS]" else ""
         model_response["conf"] = conf
         response["model_response"] = model_response

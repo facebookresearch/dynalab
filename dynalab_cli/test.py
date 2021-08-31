@@ -160,8 +160,8 @@ class TestCommand(BaseCommand):
         )
 
         shutil.copyfile(
-            "/Users/anmol17/Desktop/dynalab/examples/test-model/.dynalab/task_info.json",
-            os.path.join(tmp_dir, "task_info.json"),
+            f"/Users/anmol17/Desktop/dynalab/examples/test-model/.dynalab/{config['task']}.json",
+            os.path.join(tmp_dir, f"{config['task']}.json"),
         )
 
         # build docker
@@ -176,6 +176,8 @@ class TestCommand(BaseCommand):
             f"requirements={str(config['requirements'])}",
             "--build-arg",
             f"setup={str(config['setup'])}",
+            "--build-arg",
+            f"task_code={config['task']}",
         ]
         docker_build_command = [
             "docker",
@@ -245,7 +247,9 @@ class TestCommand(BaseCommand):
         handler_spec.loader.exec_module(handler)
 
         # load taskIO
-        task_io = importlib.import_module(f"dynalab.tasks.task_io").TaskIO()
+        task_io = importlib.import_module(f"dynalab.tasks.task_io").TaskIO(
+            config["task"]
+        )
         try:
             task_io.mock_handle_individually(
                 self.args.name, self.use_gpu(config), handler.handle

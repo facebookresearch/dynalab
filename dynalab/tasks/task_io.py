@@ -17,14 +17,14 @@ from dynalab_cli.utils import SetupConfigHandler
 
 
 class TaskIO:
-    def __init__(self, task_info_path=None):
+    def __init__(self, task_code, task_info_path=None):
 
         if task_info_path is not None:
             self.task_info = TaskIO.get_json_from_path(task_info_path)
         else:
             paths_to_check = [
-                "./.dynalab/task_info.json",
-                "/home/model-server/code/task_info.json",
+                f"./.dynalab/{task_code}.json",
+                f"/home/model-server/code/{task_code}.json",
             ]
             for path in paths_to_check:
                 self.task_info = TaskIO.get_json_from_path(path)
@@ -34,6 +34,7 @@ class TaskIO:
         if self.task_info is None:
             raise RuntimeError(f"No task io found.")
 
+        self.task_code = task_code
         self.inputs_without_targets = []
         self.targets = []
         self.initialize_inputs_and_targets()
@@ -107,7 +108,7 @@ class TaskIO:
                 ]
 
         for i in range(max_mock_data_len):
-            datum = {"uuid": str(uuid.uuid4())}
+            datum = {"uid": str(uuid.uuid4())}
             add_mock_data_for_annotations(self.inputs_without_targets, datum)
             add_mock_data_for_annotations(
                 self.task_info["annotation_config_json"]["context"], datum
@@ -232,7 +233,7 @@ class TaskIO:
         Defines task output by verifying a response satisfies all requirements
         """
         assert len(response) == 3
-        assert "id" in response and response["id"] == data["uuid"]
+        assert "id" in response and response["id"] == data["uid"]
         assert response["signature"] == self.generate_response_signature(response, data)
 
         model_response = response["model_response"]

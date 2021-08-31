@@ -231,7 +231,7 @@ class InitCommand(BaseCommand):
         task_info_path = os.path.join(
             self.config_handler.root_dir,
             self.config_handler.dynalab_dir,
-            "task_info.json",
+            f"{value}.json",
         )
         task_io_dir = os.path.dirname(task_info_path)
         os.makedirs(task_io_dir, exist_ok=True)
@@ -346,7 +346,8 @@ class InitCommand(BaseCommand):
                 "handler.py.template",
             )
             with open(template) as f:
-                handler_content = f.read()
+                content = f.read()
+                handler_content = content.format(your_task=self.config["task"])
             with open(filepath, "w") as f:
                 f.write(handler_content)
         else:
