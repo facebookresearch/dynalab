@@ -159,9 +159,14 @@ class TestCommand(BaseCommand):
             os.path.join(tmp_dir, "dev-docker-entrypoint.sh"),
         )
 
+        # Copy task annotation config file
+        annotation_config_file_path = os.path.join(
+            self.config_handler.root_dir,
+            self.config_handler.dynalab_dir,
+            f"{config['task']}.json",
+        )
         shutil.copyfile(
-            f"/Users/anmol17/Desktop/dynalab/examples/test-model/.dynalab/{config['task']}.json",
-            os.path.join(tmp_dir, f"{config['task']}.json"),
+            annotation_config_file_path, os.path.join(tmp_dir, f"{config['task']}.json")
         )
 
         # build docker

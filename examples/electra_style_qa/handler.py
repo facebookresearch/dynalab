@@ -1,8 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import sys
-
-import torch
 from transformers import (
     AutoConfig,
     AutoModelForQuestionAnswering,
@@ -11,7 +8,7 @@ from transformers import (
 )
 
 from dynalab.handler.base_handler import BaseDynaHandler
-from dynalab.tasks.qa import TaskIO
+from dynalab.tasks.task_io import TaskIO
 
 
 class Handler(BaseDynaHandler):
@@ -19,7 +16,7 @@ class Handler(BaseDynaHandler):
         """
         Load model and tokenizer files.
         """
-        self.taskIO = TaskIO()
+        self.taskIO = TaskIO("qa")
         model_pt_path, _, device_str = self._handler_initialize(context)
         config = AutoConfig.from_pretrained("config.json")
         device = -1 if device_str == "cpu" else int(device_str[-1])
@@ -50,16 +47,14 @@ class Handler(BaseDynaHandler):
         """
         Post process inference output into a response.
         """
-        result = inference_output
-        answer = result["answer"]
-        conf = result["score"]
-
-        response = dict()
+        answer, conf = inference_output
+        response, model_response = dict(), dict()
         example = self._read_data(data)
         response["id"] = example["uid"]
-        response["answer"] = answer
-        response["conf"] = conf
-        response = self.taskIO.sign_response(response, example)
+        model_response["answer"] = answer
+        model_response["conf"] = conf
+        response["model_response"] = model_response
+        self.taskIO.sign_response(response, example)
         return [response]
 
 

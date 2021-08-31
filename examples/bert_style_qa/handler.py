@@ -13,7 +13,7 @@ class Handler(BaseDynaHandler):
         Load model and tokenizer files.
         """
 
-        self.task_io = TaskIO()
+        self.taskIO = TaskIO("qa")
         model_pt_path, _, device_str = self._handler_initialize(context)
         config = AutoConfig.from_pretrained("config.json")
         self.model = AutoModelForQuestionAnswering.from_pretrained(
@@ -75,7 +75,7 @@ class Handler(BaseDynaHandler):
         model_response["answer"] = answer if answer != "[CLS]" else ""
         model_response["conf"] = conf
         response["model_response"] = model_response
-        self.task_io.sign_response(response, example)
+        self.taskIO.sign_response(response, example)
         return [response]
 
 
