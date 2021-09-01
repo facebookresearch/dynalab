@@ -238,7 +238,7 @@ class SetupConfigHandler:
             assert key not in contained_fields, f"Repeated config field {key}"
             contained_fields.add(key)
             if key == "task":
-                tasks, task_codes = get_tasks()
+                _, task_codes = get_tasks()
                 assert config[key] in task_codes, f"Invalid task name {config[key]}"
             elif key in ("checkpoint", "handler"):
                 assert check_path(

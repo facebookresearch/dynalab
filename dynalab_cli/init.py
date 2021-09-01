@@ -39,7 +39,7 @@ class InitCommand(BaseCommand):
                 "must be of the pattern ^[a-zA-Z0-9-]+$"
             ),
         )
-        tasks, task_codes = get_tasks()
+        _, task_codes = get_tasks()
         init_parser.add_argument(
             "-t", "--task", type=str, choices=task_codes, help="Name of the task"
         )

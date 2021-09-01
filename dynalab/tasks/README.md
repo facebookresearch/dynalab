@@ -8,7 +8,7 @@ If a new task is created, please update this doc to include your task.
 To view the input format of a task, in a python interpreter, do
 ```
 >>> from dynalab.tasks.task_io import TaskIO
->>> print(TaskIO("{your_task}").mock_datapoints[0])
+>>> print(TaskIO("{your_task}").mock_datapoints[0]) # {your_task} = qa, nli, etc
 ```
 The input will always follow the same format as shown here.
 
@@ -16,7 +16,7 @@ The input will always follow the same format as shown here.
 To view the expected output format, in a python interpreter, do
 ```
 >>> from dynalab.tasks.task_io import TaskIO
->>> print(TaskIO("{your_task}").sample_output)
+>>> print(TaskIO("{your_task}").get_sample_output()) # {your_task} = qa, nli, etc
 ```
 For currently existing tasks, the output format is expected to be
 

@@ -12,11 +12,11 @@ def get_source_data(annotation, name_to_annotation_dict):
     return source_data
 
 
-def generate_image_url_mock_data(annotation, name_to_annotation_dict):
+def generate_image_url_mock_data(annotation=None, name_to_annotation_dict=None):
     return ["https://dynabench.org/logo_w.png"]
 
 
-def generate_string_mock_data(annotation, name_to_annotation_dict):
+def generate_string_mock_data(annotation=None, name_to_annotation_dict=None):
     return [
         "It is a good day",
         "Let's try a utf-8 like hackamore from j?\u00a1quima;",
@@ -29,7 +29,7 @@ def generate_context_string_selection_mock_data(annotation, name_to_annotation_d
     return [source_str[0:10] for source_str in source_data]
 
 
-def generate_conf_mock_data(annotation, name_to_annotation_dict):
+def generate_conf_mock_data(annotation=None, name_to_annotation_dict=None):
     return [random.random() for _ in range(3)]
 
 
@@ -55,13 +55,13 @@ def generate_multiclass_probs_mock_data(annotation, name_to_annotation_dict):
     return mock_data
 
 
-def generate_multiclass_mock_data(annotation, name_to_annotation_dict):
+def generate_multiclass_mock_data(annotation, name_to_annotation_dict=None):
     labels = annotation["constructor_args"]["labels"]
     random.shuffle(labels)
     return labels
 
 
-def generate_target_label_mock_data(annotation, name_to_annotation_dict):
+def generate_target_label_mock_data(annotation, name_to_annotation_dict=None):
     labels = annotation["constructor_args"]["labels"]
     random.shuffle(labels)
     return labels

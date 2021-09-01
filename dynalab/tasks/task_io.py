@@ -16,27 +16,26 @@ from dynalab.tasks.annotation_verifiers import annotation_verifiers
 from dynalab_cli.utils import SetupConfigHandler
 
 
+ROOTPATH = "/home/model-server/code"
+
+
 class TaskIO:
     def __init__(self, task_code, task_info_path=None):
 
-        if task_info_path is not None:
-            self.task_info = TaskIO.get_json_from_path(task_info_path)
-        else:
-            paths_to_check = [
-                f"./.dynalab/{task_code}.json",
-                f"/home/model-server/code/{task_code}.json",
-            ]
-            for path in paths_to_check:
-                self.task_info = TaskIO.get_json_from_path(path)
-                if self.task_info is not None:
-                    break
+        paths_to_check = (
+            [task_info_path]
+            if task_info_path
+            else [f"./.dynalab/{task_code}.json", f"{ROOTPATH}/{task_code}.json"]
+        )
+        for path in paths_to_check:
+            self.task_info = TaskIO.get_json_from_path(path)
+            if self.task_info is not None:
+                break
 
         if self.task_info is None:
             raise RuntimeError(f"No task io found.")
 
-        self.task_code = task_code
         self.initialize_inputs_and_targets()
-        self.initialize_mock_data()
 
     @staticmethod
     def get_json_from_path(path):
@@ -62,9 +61,8 @@ class TaskIO:
             else:
                 self.inputs_without_targets.append(input_datum)
 
-    def initialize_mock_data(self):
-        self.mock_datapoints = []
-        self.sample_output = None
+    def get_mock_data(self):
+        mock_datapoints = []
 
         type_to_data_dict = dict()
         input_names_to_annotation_dict = dict()
@@ -121,7 +119,7 @@ class TaskIO:
             add_mock_data_for_annotations(
                 self.task_info["annotation_config_json"]["context"], datum
             )
-            self.mock_datapoints.append(datum)
+            mock_datapoints.append(datum)
 
         # generate sample_output
         target_names = set(target["name"] for target in self.targets)
@@ -149,11 +147,17 @@ class TaskIO:
         add_mock_data_for_annotations(outputs_with_targets, model_response)
         datum["model_response"] = model_response
 
-        self.sample_output = {
+        sample_output = {
             "mandatory_fields": list(target_names),
             "optional_fields": optional_fields,
             "output_entry": datum,
         }
+
+        return mock_datapoints, sample_output
+
+    def get_sample_output(self):
+        _, sample_output = self.get_mock_data()
+        return sample_output
 
     @staticmethod
     def _get_mock_context(model_name: str, use_gpu: bool):
@@ -174,8 +178,9 @@ class TaskIO:
 
     def mock_handle_individually(self, model_name: str, use_gpu: bool, handle_func):
         mock_context = TaskIO._get_mock_context(model_name, use_gpu)
-        N = len(self.mock_datapoints)
-        for i, data in enumerate(self.mock_datapoints):
+        mock_datapoints, _ = self.get_mock_data()
+        N = len(mock_datapoints)
+        for i, data in enumerate(mock_datapoints):
             print(f"Test data {i+1} / {N}")
             print(f"Mock input data is: ", data)
             mock_data = [{"body": data}]
@@ -204,12 +209,12 @@ class TaskIO:
 
     def mock_handle_with_batching(self, model_name: str, use_gpu: bool, handle_func):
         mock_context = TaskIO._get_mock_context(model_name, use_gpu)
-        N = len(self.mock_datapoints)
+        mock_datapoints, _ = self.get_mock_data()
+        N = len(mock_datapoints)
         mock_data = [
             {
                 "body": "\n".join(
-                    json.dumps(sample, ensure_ascii=False)
-                    for sample in self.mock_datapoints
+                    json.dumps(sample, ensure_ascii=False) for sample in mock_datapoints
                 )
             }
         ]
@@ -222,7 +227,7 @@ class TaskIO:
         except Exception as e:
             raise RuntimeError("The model response isn't serializable to json !") from e
 
-        for i, (data, response) in enumerate(zip(self.mock_datapoints, responses)):
+        for i, (data, response) in enumerate(zip(mock_datapoints, responses)):
             print(f"Test data {i+1} / {N}")
             print(f"Mock input data is: ", data)
             print(f"Your model response is {response}")
@@ -230,8 +235,9 @@ class TaskIO:
             self.verify_response(response, data)
 
     def test_endpoint_individually(self, endpoint_url):
-        N = len(self.mock_datapoints)
-        for i, data in enumerate(self.mock_datapoints):
+        mock_datapoints, _ = self.get_mock_data()
+        N = len(mock_datapoints)
+        for i, data in enumerate(mock_datapoints):
             print(f"Test data {i+1} / {N}")
             print("Test input data: ", data)
             r = requests.post(
