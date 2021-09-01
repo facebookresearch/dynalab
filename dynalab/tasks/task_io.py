@@ -35,11 +35,7 @@ class TaskIO:
             raise RuntimeError(f"No task io found.")
 
         self.task_code = task_code
-        self.inputs_without_targets = []
-        self.targets = []
         self.initialize_inputs_and_targets()
-
-        self.mock_datapoints = []
         self.initialize_mock_data()
 
     @staticmethod
@@ -51,13 +47,13 @@ class TaskIO:
             return None
 
     def initialize_inputs_and_targets(self):
+        self.inputs_without_targets = []
+        self.targets = []
+
         inputs_with_targets = self.task_info["annotation_config_json"]["input"]
         outputs_with_targets = self.task_info["annotation_config_json"]["output"]
 
-        output_names = set()
-
-        for output_datum in outputs_with_targets:
-            output_names.add(output_datum["name"])
+        output_names = set(output["name"] for output in outputs_with_targets)
 
         for input_datum in inputs_with_targets:
             name = input_datum["name"]
@@ -67,20 +63,28 @@ class TaskIO:
                 self.inputs_without_targets.append(input_datum)
 
     def initialize_mock_data(self):
+        self.mock_datapoints = []
+        self.sample_output = None
+
         type_to_data_dict = dict()
-        name_to_annotation_dict = dict()
+        input_names_to_annotation_dict = dict()
         max_mock_data_len = 0
 
-        def initialize_name_to_annotation_dict(annotations):
+        def initialize_names_to_annotation_dict(annotations, dest_dict):
             for annotation in annotations:
-                name_to_annotation_dict[annotation["name"]] = annotation
+                dest_dict[annotation["name"]] = annotation
 
-        initialize_name_to_annotation_dict(self.inputs_without_targets)
-        initialize_name_to_annotation_dict(
-            self.task_info["annotation_config_json"]["context"]
+        initialize_names_to_annotation_dict(
+            self.inputs_without_targets, input_names_to_annotation_dict
+        )
+        initialize_names_to_annotation_dict(
+            self.task_info["annotation_config_json"]["context"],
+            input_names_to_annotation_dict,
         )
 
-        def load_mock_data_for_annotations(annotations, max_mock_data_len_inner):
+        def load_mock_data_for_annotations(
+            annotations, max_mock_data_len_inner, name_to_annotation_dict
+        ):
             for annotation in annotations:
                 def_type = annotation["type"]
                 if def_type not in type_to_data_dict:
@@ -94,10 +98,14 @@ class TaskIO:
             return max_mock_data_len_inner
 
         max_mock_data_len = load_mock_data_for_annotations(
-            self.inputs_without_targets, max_mock_data_len
+            self.inputs_without_targets,
+            max_mock_data_len,
+            input_names_to_annotation_dict,
         )
         max_mock_data_len = load_mock_data_for_annotations(
-            self.task_info["annotation_config_json"]["context"], max_mock_data_len
+            self.task_info["annotation_config_json"]["context"],
+            max_mock_data_len,
+            input_names_to_annotation_dict,
         )
 
         def add_mock_data_for_annotations(annotations, datum):
@@ -114,6 +122,38 @@ class TaskIO:
                 self.task_info["annotation_config_json"]["context"], datum
             )
             self.mock_datapoints.append(datum)
+
+        # generate sample_output
+        target_names = set(target["name"] for target in self.targets)
+        outputs_with_targets = self.task_info["annotation_config_json"]["output"]
+        optional_fields = [
+            output["name"]
+            for output in outputs_with_targets
+            if output["name"] not in target_names
+        ]
+
+        output_names_to_annotation_dict = dict()
+        initialize_names_to_annotation_dict(
+            outputs_with_targets, output_names_to_annotation_dict
+        )
+        initialize_names_to_annotation_dict(
+            self.task_info["annotation_config_json"]["context"],
+            output_names_to_annotation_dict,
+        )
+
+        load_mock_data_for_annotations(
+            outputs_with_targets, max_mock_data_len, output_names_to_annotation_dict
+        )
+        datum = {"id": str(uuid.uuid4())}
+        model_response = dict()
+        add_mock_data_for_annotations(outputs_with_targets, model_response)
+        datum["model_response"] = model_response
+
+        self.sample_output = {
+            "mandatory_fields": list(target_names),
+            "optional_fields": optional_fields,
+            "output_entry": datum,
+        }
 
     @staticmethod
     def _get_mock_context(model_name: str, use_gpu: bool):
