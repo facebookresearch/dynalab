@@ -49,8 +49,8 @@ class TaskIO:
         self.inputs_without_targets = []
         self.targets = []
 
-        inputs_with_targets = self.task_info["annotation_config_json"]["input"]
-        outputs_with_targets = self.task_info["annotation_config_json"]["output"]
+        inputs_with_targets = self.task_info["annotation_config"]["input"]
+        outputs_with_targets = self.task_info["annotation_config"]["output"]
 
         output_names = set(output["name"] for output in outputs_with_targets)
 
@@ -76,7 +76,7 @@ class TaskIO:
             self.inputs_without_targets, input_names_to_annotation_dict
         )
         initialize_names_to_annotation_dict(
-            self.task_info["annotation_config_json"]["context"],
+            self.task_info["annotation_config"]["context"],
             input_names_to_annotation_dict,
         )
 
@@ -101,7 +101,7 @@ class TaskIO:
             input_names_to_annotation_dict,
         )
         max_mock_data_len = load_mock_data_for_annotations(
-            self.task_info["annotation_config_json"]["context"],
+            self.task_info["annotation_config"]["context"],
             max_mock_data_len,
             input_names_to_annotation_dict,
         )
@@ -117,13 +117,13 @@ class TaskIO:
             datum = {"uid": str(uuid.uuid4())}
             add_mock_data_for_annotations(self.inputs_without_targets, datum)
             add_mock_data_for_annotations(
-                self.task_info["annotation_config_json"]["context"], datum
+                self.task_info["annotation_config"]["context"], datum
             )
             mock_datapoints.append(datum)
 
         # generate sample_output
         target_names = set(target["name"] for target in self.targets)
-        outputs_with_targets = self.task_info["annotation_config_json"]["output"]
+        outputs_with_targets = self.task_info["annotation_config"]["output"]
         optional_fields = [
             output["name"]
             for output in outputs_with_targets
@@ -135,7 +135,7 @@ class TaskIO:
             outputs_with_targets, output_names_to_annotation_dict
         )
         initialize_names_to_annotation_dict(
-            self.task_info["annotation_config_json"]["context"],
+            self.task_info["annotation_config"]["context"],
             output_names_to_annotation_dict,
         )
 
@@ -159,14 +159,16 @@ class TaskIO:
         _, sample_output = self.get_mock_data()
         return sample_output
 
+    # Note: This context comes from torchserve and stores some model relevant information.
+    # It is different from the context value present inside annotation_config.
     @staticmethod
-    def _get_mock_context(model_name: str, use_gpu: bool):
+    def _get_mock_torchserve_context(model_name: str, use_gpu: bool):
         config_handler = SetupConfigHandler(model_name)
         config = config_handler.load_config()
         fname = os.path.basename(config["checkpoint"])
         model_dir = os.path.dirname(config["checkpoint"])
         manifest = {"model": {"serializedFile": fname}}
-        context = Context(
+        torchserve_context = Context(
             model_name=model_name,
             model_dir=model_dir,
             manifest=manifest,
@@ -174,10 +176,12 @@ class TaskIO:
             gpu=None,
             mms_version=None,
         )
-        return context
+        return torchserve_context
 
     def mock_handle_individually(self, model_name: str, use_gpu: bool, handle_func):
-        mock_context = TaskIO._get_mock_context(model_name, use_gpu)
+        mock_torchserve_context = TaskIO._get_mock_torchserve_context(
+            model_name, use_gpu
+        )
         mock_datapoints, _ = self.get_mock_data()
         N = len(mock_datapoints)
         for i, data in enumerate(mock_datapoints):
@@ -185,7 +189,7 @@ class TaskIO:
             print(f"Mock input data is: ", data)
             mock_data = [{"body": data}]
             print("Getting model response ...")
-            responses = handle_func(mock_data, mock_context)
+            responses = handle_func(mock_data, mock_torchserve_context)
             assert (
                 len(responses) == 1
             ), "The model should return one torchserve sample !"
@@ -208,7 +212,9 @@ class TaskIO:
             self.verify_response(response, data)
 
     def mock_handle_with_batching(self, model_name: str, use_gpu: bool, handle_func):
-        mock_context = TaskIO._get_mock_context(model_name, use_gpu)
+        mock_torchserve_context = TaskIO._get_mock_torchserve_context(
+            model_name, use_gpu
+        )
         mock_datapoints, _ = self.get_mock_data()
         N = len(mock_datapoints)
         mock_data = [
@@ -219,7 +225,7 @@ class TaskIO:
             }
         ]
         print("Getting model response ...")
-        responses = handle_func(mock_data, mock_context)
+        responses = handle_func(mock_data, mock_torchserve_context)
         assert len(responses) == 1, "The model should return one torchserve sample !"
 
         try:
@@ -289,7 +295,7 @@ class TaskIO:
 
         target_names = [target["name"] for target in self.targets]
 
-        outputs = self.task_info["annotation_config_json"]["output"]
+        outputs = self.task_info["annotation_config"]["output"]
         name_to_constructor_args = {}
         for output in outputs:
             name_to_constructor_args[output["name"]] = output["constructor_args"]
@@ -327,11 +333,9 @@ class TaskIO:
         inputs, outputs = dict(), dict()
 
         add_annotations(self.inputs_without_targets, inputs, data)
+        add_annotations(self.task_info["annotation_config"]["context"], inputs, data)
         add_annotations(
-            self.task_info["annotation_config_json"]["context"], inputs, data
-        )
-        add_annotations(
-            self.task_info["annotation_config_json"]["output"],
+            self.task_info["annotation_config"]["output"],
             outputs,
             response["model_response"],
         )

@@ -18,7 +18,7 @@ To view the expected output format, in a python interpreter, do
 >>> from dynalab.tasks.task_io import TaskIO
 >>> print(TaskIO("{your_task}").get_sample_output()) # {your_task} = qa, nli, etc
 ```
-For currently existing tasks, the output format is expected to be
+Here are some examples of the output format for a few tasks:
 
 **nli**
 ```
