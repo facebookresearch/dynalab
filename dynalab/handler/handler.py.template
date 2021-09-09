@@ -95,7 +95,7 @@ class Handler(BaseDynaHandler):
         dynalab.tasks.TaskIO("{your_task}").verify_response(response, data)
         ```
         """
-        response, model_response = dict(), dict()
+        response = dict()
         answer, conf = inference_output
         example = self._read_data(data)
         response["id"] = example["uid"]
@@ -103,10 +103,9 @@ class Handler(BaseDynaHandler):
         """
         Add attributes to response
         """
-        model_response["answer"] = answer if answer != '[CLS]' else ''
-        model_response["conf"] = conf
+        response["answer"] = answer if answer != '[CLS]' else ''
+        response["conf"] = conf
         # #################################################
-        response["model_response"] = model_response
         self.taskIO.sign_response(response, example)
         return [response]
 

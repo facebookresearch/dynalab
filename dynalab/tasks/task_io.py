@@ -143,9 +143,7 @@ class TaskIO:
             outputs_with_targets, max_mock_data_len, output_names_to_annotation_dict
         )
         datum = {"id": str(uuid.uuid4())}
-        model_response = dict()
-        add_mock_data_for_annotations(outputs_with_targets, model_response)
-        datum["model_response"] = model_response
+        add_mock_data_for_annotations(outputs_with_targets, datum)
 
         sample_output = {
             "mandatory_fields": list(target_names),
@@ -284,14 +282,11 @@ class TaskIO:
         """
         Defines task output by verifying a response satisfies all requirements
         """
-        assert len(response) == 3
         assert "id" in response and response["id"] == data["uid"]
         assert response["signature"] == self.generate_response_signature(response, data)
 
-        model_response = response["model_response"]
-
         missing_target_fields = len(self.targets)
-        extra_fields = len(model_response)
+        extra_fields = len(response) - 2
 
         target_names = [target["name"] for target in self.targets]
 
@@ -302,13 +297,13 @@ class TaskIO:
 
         for output in outputs:
             output_name = output["name"]
-            if output_name in model_response:
+            if output_name in response:
                 extra_fields -= 1
                 if output_name in target_names:
                     missing_target_fields -= 1
 
                 annotation_verifiers[output["type"]](
-                    model_response[output_name],
+                    response[output_name],
                     name_to_constructor_args[output_name],
                     name_to_constructor_args,
                     data,
@@ -335,9 +330,7 @@ class TaskIO:
         add_annotations(self.inputs_without_targets, inputs, data)
         add_annotations(self.task_info["annotation_config"]["context"], inputs, data)
         add_annotations(
-            self.task_info["annotation_config"]["output"],
-            outputs,
-            response["model_response"],
+            self.task_info["annotation_config"]["output"], outputs, response
         )
 
         return task, inputs, outputs
