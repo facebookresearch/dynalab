@@ -7,18 +7,18 @@ If a new task is created, please update this doc to include your task.
 ## Input
 To view the input format of a task, in a python interpreter, do
 ```
->>> from dynalab.tasks import nli # or hs, sentiment, qa
->>> print(nli.TaskIO().data)
+>>> from dynalab.tasks.task_io import TaskIO
+>>> print(TaskIO("{your_task}").mock_datapoints[0]) # {your_task} = qa, nli, etc
 ```
 The input will always follow the same format as shown here.
 
 ## Output
 To view the expected output format, in a python interpreter, do
 ```
->>> from dynalab.tasks import nli # or hs, sentiment, qa
->>> print(nli.TaskIO().verify_response.__doc__)
+>>> from dynalab.tasks.task_io import TaskIO
+>>> print(TaskIO("{your_task}").get_sample_output()) # {your_task} = qa, nli, etc
 ```
-For currently existing tasks, the output format is expected to be
+Here are some examples of the output format for a few tasks:
 
 **nli**
 ```

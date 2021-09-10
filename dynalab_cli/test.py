@@ -159,6 +159,16 @@ class TestCommand(BaseCommand):
             os.path.join(tmp_dir, "dev-docker-entrypoint.sh"),
         )
 
+        # Copy task annotation config file
+        annotation_config_file_path = os.path.join(
+            self.config_handler.root_dir,
+            self.config_handler.dynalab_dir,
+            f"{config['task']}.json",
+        )
+        shutil.copyfile(
+            annotation_config_file_path, os.path.join(tmp_dir, f"{config['task']}.json")
+        )
+
         # build docker
         repository_name = self.args.name.lower()
         print("Building docker image...")
@@ -171,6 +181,8 @@ class TestCommand(BaseCommand):
             f"requirements={str(config['requirements'])}",
             "--build-arg",
             f"setup={str(config['setup'])}",
+            "--build-arg",
+            f"task_code={config['task']}",
         ]
         docker_build_command = [
             "docker",
@@ -201,7 +213,7 @@ class TestCommand(BaseCommand):
             stdout=subprocess.PIPE,
             universal_newlines=True,
         )
-        
+
         ts_log = os.path.join(tmp_dir, "ts_log.err")
         with open(ts_log, "w") as f:
             f.write(process.stderr)
@@ -240,11 +252,12 @@ class TestCommand(BaseCommand):
         handler_spec.loader.exec_module(handler)
 
         # load taskIO
-        taskIO = importlib.import_module(f"dynalab.tasks.{config['task']}").TaskIO()
-        mock_data = importlib.import_module(f"dynalab.tasks.{config['task']}").data
+        task_io = importlib.import_module(f"dynalab.tasks.task_io").TaskIO(
+            config["task"]
+        )
         try:
-            taskIO.mock_handle_individually(
-                self.args.name, mock_data, self.use_gpu(config), handler.handle
+            task_io.mock_handle_individually(
+                self.args.name, self.use_gpu(config), handler.handle
             )
         except Exception as e:
             raise RuntimeError(f"Local test failed because of: {e}")

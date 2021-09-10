@@ -11,6 +11,7 @@ ARG model_name
 ARG add_dir
 ARG requirements
 ARG setup
+ARG task_code
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
@@ -52,4 +53,5 @@ RUN python -m pip install --force-reinstall git+git://github.com/facebookresearc
 
 ENV model_name=${model_name}
 ENV PYTHONIOENCODING=UTF-8
+COPY ${add_dir}/${task_code}.json /home/model-server/code/${task_code}.json
 ENTRYPOINT /usr/local/bin/dev-entrypoint.sh ${model_name}

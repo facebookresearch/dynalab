@@ -16,8 +16,8 @@ import sys
 
 import torch
 
-from dynalab.handler.base_handler import BaseDynaHandler, ROOTPATH
-from dynalab.tasks.{your_task} import TaskIO
+from dynalab.handler.base_handler import BaseDynaHandler
+from dynalab.tasks.task_io import TaskIO, ROOTPATH
 
 
 # NOTE: use the following line to import modules from your repo
@@ -31,15 +31,14 @@ class Handler(BaseDynaHandler):
         load model and extra files
         """
         model_pt_path, model_file_dir, device_str = self._handler_initialize(context)
-        self.taskIO = TaskIO()
+        self.taskIO = TaskIO("{your_task}")
 
         # ############TODO 1: Initialize model ############
         """
         Load model and read relevant files here.
         """
-        config = json.load(
-            os.path.join(model_file_dir, "config")
-        )
+        with open(os.path.join(model_file_dir, "config")) as f:
+            config = json.load(f)
         self.model = MyModel(config)
         self.model.load_state_dict(torch.load(model_pt_path, map_location=device_str))
         self.model.to(torch.device(device_str))
@@ -60,8 +59,9 @@ class Handler(BaseDynaHandler):
         example is a always json object. Yo can see what an example looks
         in a Python interpreter by
         ```
-        >>> from dynalab.tasks import {your_task}
-        >>> {your_task}.data[0]
+        >>> from dynalab.tasks.task_io import TaskIO
+        >>> task_io = TaskIO("{your_task}")
+        >>> task_io.mock_datapoints[0]
         ```
         """
         context = example["context"]
@@ -92,20 +92,21 @@ class Handler(BaseDynaHandler):
         response should be a single element list of a json
         the response format will need to pass the validation in
         ```
-        dynalab.tasks.{your_task}.TaskIO().verify_response(response, data)
+        dynalab.tasks.TaskIO("{your_task}").verify_response(response, data)
         ```
         """
         response = dict()
+        answer, conf = inference_output
         example = self._read_data(data)
+        response["id"] = example["uid"]
         # ############TODO 4: postprocess response ########
         """
         Add attributes to response
         """
-        response["id"] = example["uid"]
-        response["label"] = inference_output > 0.5
-        response["prob"] = inference_output
+        response["answer"] = answer if answer != '[CLS]' else ''
+        response["conf"] = conf
         # #################################################
-        response = self.taskIO.sign_response(response, example)
+        self.taskIO.sign_response(response, example)
         return [response]
 
 

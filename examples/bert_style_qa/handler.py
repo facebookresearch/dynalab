@@ -1,28 +1,25 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-import sys
-
 import torch
-from transformers import (AutoConfig, AutoTokenizer,
-                          AutoModelForQuestionAnswering)
+from transformers import AutoConfig, AutoModelForQuestionAnswering, AutoTokenizer
 
 from dynalab.handler.base_handler import BaseDynaHandler
-from dynalab.tasks.qa import TaskIO
+from dynalab.tasks.task_io import TaskIO
 
 
 class Handler(BaseDynaHandler):
-
     def initialize(self, context):
         """
         Load model and tokenizer files.
         """
-        self.taskIO = TaskIO()
+
+        self.taskIO = TaskIO("qa")
         model_pt_path, _, device_str = self._handler_initialize(context)
         config = AutoConfig.from_pretrained("config.json")
         self.model = AutoModelForQuestionAnswering.from_pretrained(
             model_pt_path, config=config
         )
-        self.tokenizer = AutoTokenizer.from_pretrained('.')
+        self.tokenizer = AutoTokenizer.from_pretrained(".")
         self.model.to(torch.device(device_str))
         self.model.eval()
 
@@ -36,10 +33,7 @@ class Handler(BaseDynaHandler):
         context = example["context"]
         question = example["question"]
         input_encoding = self.tokenizer.encode_plus(
-            question,
-            context,
-            max_length=512,
-            return_tensors="pt"
+            question, context, max_length=512, return_tensors="pt"
         )
         input_ids = input_encoding["input_ids"].tolist()[0]
 
@@ -53,22 +47,18 @@ class Handler(BaseDynaHandler):
         with torch.no_grad():
             output = self.model(**input_encoding)
 
-            answer_start_probs = torch.nn.functional.softmax(
-                output.start_logits
-            )
+            answer_start_probs = torch.nn.functional.softmax(output.start_logits)
             answer_end_probs = torch.nn.functional.softmax(output.end_logits)
 
             best_answer_start_prob, best_answer_start = torch.max(
                 answer_start_probs, dim=1
             )
-            best_answer_end_prob, best_answer_end = torch.max(
-                answer_end_probs, dim=1
-            )
+            best_answer_end_prob, best_answer_end = torch.max(answer_end_probs, dim=1)
 
             conf = float(best_answer_start_prob * best_answer_end_prob)
             answer = self.tokenizer.convert_tokens_to_string(
                 self.tokenizer.convert_ids_to_tokens(
-                    input_ids[best_answer_start:best_answer_end+1]
+                    input_ids[best_answer_start : best_answer_end + 1]
                 )
             )
 
@@ -82,9 +72,9 @@ class Handler(BaseDynaHandler):
         response = dict()
         example = self._read_data(data)
         response["id"] = example["uid"]
-        response["answer"] = answer if answer != '[CLS]' else ''
+        response["answer"] = answer if answer != "[CLS]" else ""
         response["conf"] = conf
-        response = self.taskIO.sign_response(response, example)
+        self.taskIO.sign_response(response, example)
         return [response]
 
 

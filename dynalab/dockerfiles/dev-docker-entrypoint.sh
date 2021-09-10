@@ -38,4 +38,4 @@ echo "Health ping passed. Start model inference..."
 
 # run inference
 endpoint_url="http://127.0.0.1:8080/predictions/$model_name"
-python -c "import sys; from dynalab.tasks.${task} import TaskIO, data; TaskIO().test_endpoint_individually(sys.argv[1], data)" $endpoint_url
+python -c "import sys; from dynalab.tasks.task_io import TaskIO; TaskIO(sys.argv[1]).test_endpoint_individually(sys.argv[2])" $task $endpoint_url

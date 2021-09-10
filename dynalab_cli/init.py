@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
 import os
 import subprocess
 
@@ -38,8 +39,9 @@ class InitCommand(BaseCommand):
                 "must be of the pattern ^[a-zA-Z0-9-]+$"
             ),
         )
+        _, task_codes = get_tasks()
         init_parser.add_argument(
-            "-t", "--task", type=str, choices=get_tasks(), help="Name of the task"
+            "-t", "--task", type=str, choices=task_codes, help="Name of the task"
         )
         init_parser.add_argument(
             "-d",
@@ -211,13 +213,29 @@ class InitCommand(BaseCommand):
             raise NotImplementedError(f"{key} not supported in setup_config")
 
     def initialize_task(self, key, value):
-        tasks = get_tasks()
-        while value not in tasks:
+        tasks, task_codes = get_tasks()
+        while value not in task_codes:
             message = (
                 f"Please choose a valid task name from one of "
-                f"[{', '.join(tasks)}]: "
+                f"[{', '.join(task_codes)}]: "
             )
             value = input(message)
+
+        task = [task for task in tasks if task["task_code"] == value][0]
+        annotation_config = json.loads(task["annotation_config_json"])
+
+        task_info = {"annotation_config": annotation_config, "task": value}
+
+        task_info_path = os.path.join(
+            self.config_handler.root_dir,
+            self.config_handler.dynalab_dir,
+            f"{value}.json",
+        )
+        task_io_dir = os.path.dirname(task_info_path)
+        os.makedirs(task_io_dir, exist_ok=True)
+        with open(task_info_path, "w+") as f:
+            f.write(json.dumps(task_info, indent=4))
+
         self.update_field(key, value)
 
     def initialize_path(self, key, value):
