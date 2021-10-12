@@ -2,7 +2,7 @@ import enum
 
 
 class AnnotationTypeEnum(enum.Enum):
-    image_url = "image_url"
+    image = "image"
     string = "string"
     context_string_selection = "context_string_selection"
     conf = "conf"

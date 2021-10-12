@@ -1,4 +1,6 @@
 import random
+import base64
+import requests
 
 from dynalab.tasks.annotation_types import AnnotationTypeEnum
 
@@ -12,8 +14,11 @@ def get_source_data(annotation, name_to_annotation_dict):
     return source_data
 
 
-def generate_image_url_mock_data(annotation=None, name_to_annotation_dict=None):
-    return ["https://dynabench.org/logo_w.png"]
+def generate_image_mock_data(annotation=None, name_to_annotation_dict=None):
+    url = "https://dynabench.org/favicon-16x16.png"
+    base64_string = base64.encodebytes(
+        requests.get(url, verify=False).content).decode("utf-8")
+    return [base64_string]
 
 
 def generate_string_mock_data(annotation=None, name_to_annotation_dict=None):
@@ -68,7 +73,7 @@ def generate_target_label_mock_data(annotation, name_to_annotation_dict=None):
 
 
 annotation_mock_data_generators = {
-    AnnotationTypeEnum.image_url.name: generate_image_url_mock_data,
+    AnnotationTypeEnum.image.name: generate_image_mock_data,
     AnnotationTypeEnum.string.name: generate_string_mock_data,
     AnnotationTypeEnum.context_string_selection.name: generate_context_string_selection_mock_data,
     AnnotationTypeEnum.conf.name: generate_conf_mock_data,

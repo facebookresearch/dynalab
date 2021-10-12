@@ -4,7 +4,7 @@ from dynalab.tasks.annotation_types import AnnotationTypeEnum
 EPSILON_PREC = 1e-4
 
 
-def verify_image_url(obj, obj_constructor_args, name_to_constructor_args, data):
+def verify_image(obj, obj_constructor_args, name_to_constructor_args, data):
     assert isinstance(obj, str)
 
 
@@ -45,7 +45,7 @@ def verify_target_label(obj, obj_constructor_args, name_to_constructor_args, dat
 
 
 annotation_verifiers = {
-    AnnotationTypeEnum.image_url.name: verify_image_url,
+    AnnotationTypeEnum.image.name: verify_image,
     AnnotationTypeEnum.string.name: verify_string,
     AnnotationTypeEnum.context_string_selection.name: verify_context_string_selection,
     AnnotationTypeEnum.conf.name: verify_conf,
