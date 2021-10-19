@@ -19,7 +19,7 @@ protobuf
 tokenizer files to ```model_files``` with
 ```dynalab-cli init -n <name of your model> --amend```.
 
-***If you just want to get an example submitted to Dynabench for the QA task***
+***Concretely, you would go through the following steps:***
 1. Download a model from huggingface, for example [this one](https://huggingface.co/distilbert-base-cased-distilled-squad/tree/main) (download `pytorch_model.bin`, `config.json`, `tokenizer.json`, and `tokenizer_config.json`) into this folder (`dynalab/examples/bert_style_qa`)
 
 2. Make a new file `requirements.txt` and add:
@@ -27,7 +27,7 @@ tokenizer files to ```model_files``` with
 transformers
 ```
 
-3. Run `dynalab-cli init -n bertstyleqa`, and follow these answers:
+3. Run `dynalab-cli init -n bertstyleqa`, and provide these answers:
 
 ```
 Initializing . for dynalab model 'bertstyleqa'...
