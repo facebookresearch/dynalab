@@ -27,6 +27,8 @@ tokenizer files to ```model_files``` with
 transformers
 ```
 
+(Depending on what model you choose to use, you might need to add `sentencepiece` and `protobuf` to `requirements.txt` as well)
+
 3. Run `dynalab-cli init -n bertstyleqa`, and provide these answers:
 
 ```
