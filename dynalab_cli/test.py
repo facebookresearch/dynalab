@@ -75,7 +75,7 @@ class TestCommand(BaseCommand):
             total_size += dentry.stat().st_size
         if config["exclude"]:
             for f in config["exclude"]:
-                total_size -= os.path.getsize(f)
+                total_size -= Path(f).stat().st_size
         if total_size > MAX_SIZE:
             print(
                 "Warning: Size of current project folder is more than 2GB. "
@@ -88,11 +88,11 @@ class TestCommand(BaseCommand):
             self.run_docker_test(config)
 
     def run_docker_test(self, config):
-        tmp_dir = os.path.join(self.config_handler.config_dir, "tmp")
-        os.makedirs(tmp_dir, exist_ok=True)
+        tmp_dir = self.config_handler.config_dir / "tmp"
+        tmp_dir.mkdir(exist_ok=True)
         # tarball everything
         print("Tarballing the project directory...")
-        exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
+        exclude_list_file = tmp_dir / "exclude.txt"
         self.config_handler.write_exclude_filelist(
             exclude_list_file, self.args.name, exclude_model=True
         )
@@ -101,7 +101,7 @@ class TestCommand(BaseCommand):
                 "tar",
                 f"--exclude-from={exclude_list_file}",
                 "-czf",
-                os.path.join(tmp_dir, f"{self.args.name}.tar.gz"),
+                str(tmp_dir / f"{self.args.name}.tar.gz"),
                 ".",
             ],
             stdout=subprocess.PIPE,
@@ -141,33 +141,27 @@ class TestCommand(BaseCommand):
             raise RuntimeError(f"Exception in torchserve archive {process.stderr}")
 
         # pull docker
-        lib_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-            "dynalab",
-            "dockerfiles",
-        )
+        lib_dir = Path(__file__).resolve().parent.parent / "dynalab" / "dockerfiles"
 
         use_gpu = self.use_gpu(config)
-        docker_file = Path(lib_dir) / "Dockerfile.dev"
+        docker_file = lib_dir / "Dockerfile.dev"
         if use_gpu:
-            docker_file = Path(lib_dir) / "Dockerfile.cuda"
-        docker_path = os.path.join(tmp_dir, "Dockerfile")
+            docker_file = lib_dir / "Dockerfile.cuda"
+        docker_path = tmp_dir / "Dockerfile"
         # TODO: pull the files from dynalab repo once public
         shutil.copyfile(str(docker_file), docker_path)
         shutil.copyfile(
-            os.path.join(lib_dir, "dev-docker-entrypoint.sh"),
-            os.path.join(tmp_dir, "dev-docker-entrypoint.sh"),
+            lib_dir / "dev-docker-entrypoint.sh", tmp_dir / "dev-docker-entrypoint.sh"
         )
 
         # Copy task annotation config file
-        annotation_config_file_path = os.path.join(
-            self.config_handler.root_dir,
-            self.config_handler.dynalab_dir,
-            f"{config['task']}.json",
+        annotation_config_file_path = (
+            self.config_handler.root_dir
+            / self.config_handler.dynalab_dir
+            / f"{config['task']}.json",
         )
-        shutil.copyfile(
-            annotation_config_file_path, os.path.join(tmp_dir, f"{config['task']}.json")
-        )
+
+        shutil.copyfile(annotation_config_file_path, tmp_dir / f"{config['task']}.json")
 
         # build docker
         repository_name = self.args.name.lower()
@@ -214,10 +208,10 @@ class TestCommand(BaseCommand):
             universal_newlines=True,
         )
 
-        ts_log = os.path.join(tmp_dir, "ts_log.err")
-        with open(ts_log, "w") as f:
+        ts_log = tmp_dir / "ts_log.err"
+        with ts_log.open("w") as f:
             f.write(process.stderr)
-        with open(os.path.join(tmp_dir, "ts_log.out"), "w") as f:
+        with (tmp_dir / "ts_log.out").open("w") as f:
             f.write(process.stdout)
 
         if process.returncode != 0:
@@ -231,8 +225,8 @@ class TestCommand(BaseCommand):
             )
 
         # clean up local tarball, .mar and intermediate docker layers
-        os.remove(os.path.join(tmp_dir, f"{self.args.name}.tar.gz"))
-        os.remove(os.path.join(tmp_dir, f"{self.args.name}.mar"))
+        (tmp_dir / f"{self.args.name}.tar.gz").unlink()
+        (tmp_dir / f"{self.args.name}.mar").unlink()
         print(
             "We suggest removing unused docker data by `docker system prune`, "
             "including unused containers, networks and images. "
@@ -244,7 +238,7 @@ class TestCommand(BaseCommand):
 
     def run_local_test(self, config):
         # load handler
-        sys.path.append(os.getcwd())
+        sys.path.append(Path.cwd())
         handler_spec = importlib.util.spec_from_file_location(
             "handler", config["handler"]
         )
