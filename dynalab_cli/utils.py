@@ -7,6 +7,7 @@ import json
 import os
 import re
 import webbrowser
+from pathlib import Path
 
 import requests
 
@@ -15,48 +16,45 @@ from dynalab.config import DYNABENCH_API, DYNABENCH_WEB
 
 class APIToken:
     def __init__(self):
-        self.cred_path = os.path.expanduser(
-            os.path.join("~", ".dynalab", "secrets.json")
-        )
-
+        self.cred_path = (Path("~") / ".dynalab" / "secrets.json").expanduser()
     def save(self, token):
-        dirname = os.path.dirname(self.cred_path)
-        os.makedirs(dirname, exist_ok=True)
+        dirname = self.cred_path.parent
+        dirname.mkdir(exist_ok=True)
         data = {}
-        if os.path.exists(self.cred_path):
-            with open(self.cred_path) as f:
+        if self.cred_path.exists():
+            with self.cred_path.open() as f:
                 data = json.load(f)
 
         data["api_token"] = token
 
-        with open(self.cred_path, "w+") as f:
+        with self.cred_path.open("w+") as f:
             json.dump(data, f)
 
     def load(self):
-        if os.path.exists(self.cred_path):
-            with open(self.cred_path) as f:
+        if self.cred_path.exists():
+            with self.cred_path.open() as f:
                 token = json.load(f)["api_token"]
             return token
         raise RuntimeError("You need to first login by dynalab-cli login")
 
     def delete(self):
-        if os.path.exists(self.cred_path):
+        if self.cred_path.exists():
             data = {}
-            with open(self.cred_path) as f:
+            with self.cred_path.open() as f:
                 data = json.load(f)
 
             data.pop("api_token", None)
             if len(data) == 0:
-                os.remove(self.cred_path)
+                self.cred_path.unlink()
             else:
                 # Some other config is still there, dump it back
-                with open(self.cred_path, "w") as f:
+                with self.cred_path.open("w") as f:
                     json.dump(data, f)
 
     def exists(self):
-        if os.path.exists(self.cred_path):
+        if self.cred_path.exists():
             data = {}
-            with open(self.cred_path) as f:
+            with self.cred_path.open() as f:
                 data = json.load(f)
             return "api_token" in data
         return False
@@ -136,20 +134,20 @@ def get_task_submission_limit(task_code):
 
 # some file path utils
 def check_path(path, root_dir=".", is_file=True, allow_empty=True):
+    path=Path(path)
     if not path:
         return False
-    if not os.path.exists(path):
+    if not path.exists():
         return False
-    if is_file and not os.path.isfile(path):
+    if is_file and not path.is_file():
         return False
-    if not allow_empty and os.path.getsize(path) == 0:
+    if not allow_empty and path.stat().st_size == 0:
         return False
-    return os.path.realpath(path).startswith(os.path.realpath(root_dir))
+    return str(path.resolve()).startswith(str(root_dir.resolve()))
 
 
 def get_path_inside_rootdir(path, root_dir="."):
-    realpath = os.path.realpath(os.path.expanduser(path))
-    return realpath[len(os.path.realpath(root_dir)) :].lstrip("/")
+    return Path(path).expanduser().resolve().relative_to(Path(root_dir).expanduser().resolve())
 
 
 def default_filename(key):
@@ -178,13 +176,10 @@ class SetupConfigHandler:
         """
         check_model_name(name)
         self.name = name
-        self.root_dir = root_dir
-        self.dynalab_dir = ".dynalab"
-        self.config_path = os.path.join(
-            self.root_dir,
-            os.path.join(self.dynalab_dir, self.name, "setup_config.json"),
-        )
-        self.config_dir = os.path.dirname(self.config_path)
+        self.root_dir = Path(root_dir)
+        self.dynalab_dir = Path(".dynalab")
+        self.config_path = root_dir / self.dynalab_dir / self.name / "setup_config.json"
+        self.config_dir = self.config_path.parent
         self.config_fields = {
             "task",
             "checkpoint",
@@ -194,14 +189,14 @@ class SetupConfigHandler:
             "model_files",
             "exclude",
         }
-        self.submission_dir = ".dynalab_submissions"
+        self.submission_dir = Path(".dynalab_submissions")
 
     def config_exists(self):
-        return os.path.exists(self.config_path)
+        return self.config_path.exists()
 
     def load_config(self):
-        if os.path.exists(self.config_path):
-            with open(self.config_path) as f:
+        if self.config_path.exists():
+            with self.config_path.open() as f:
                 return json.load(f)
         else:
             raise RuntimeError(
@@ -209,8 +204,10 @@ class SetupConfigHandler:
             )
 
     def write_config(self, config):
-        os.makedirs(self.config_dir, exist_ok=True)
-        with open(self.config_path, "w+") as f:
+        self.config_dir.mkdir(exist_ok=True)
+        config["checkpoint"]=str(config["checkpoint"])
+        config["handler"]=str(config["handler"])
+        with self.config_path.open("w+") as f:
             f.write(json.dumps(config, indent=4))
 
     def validate_config(self):
@@ -223,7 +220,7 @@ class SetupConfigHandler:
             files = config[key]
             for f in files:
                 assert check_path(
-                    os.path.join(self.root_dir, f),
+                    self.root_dir / f,
                     root_dir=self.root_dir,
                     is_file=False,
                     allow_empty=True,
@@ -239,7 +236,7 @@ class SetupConfigHandler:
                 assert config[key] in task_codes, f"Invalid task name {config[key]}"
             elif key in ("checkpoint", "handler"):
                 assert check_path(
-                    os.path.join(self.root_dir, config[key]),
+                    self.root_dir / config[key],
                     root_dir=self.root_dir,
                     allow_empty=False,
                 ), f"{config[key]} is empty or not a valid path"
@@ -253,7 +250,7 @@ class SetupConfigHandler:
                     files = config[key]
                     for f in files:
                         assert check_path(
-                            os.path.join(self.root_dir, f),
+                            self.root_dir / f,
                             root_dir=self.root_dir,
                             allow_empty=False,
                         ), f"{key} path {f} is empty or not a valid path"
@@ -266,7 +263,7 @@ class SetupConfigHandler:
                 ), f"{key.capitalize()} field must be a boolean true/false"
                 if config[key]:
                     assert check_path(
-                        os.path.join(self.root_dir, default_filename(key)),
+                        self.root_dir / default_filename(key),
                         root_dir=self.root_dir,
                         allow_empty=False,
                     ), (
@@ -279,11 +276,11 @@ class SetupConfigHandler:
 
     def write_exclude_filelist(self, outfile, model_name, exclude_model=False):
         def _write_exclude_entry_safe(file, f_obj):
-            if os.path.exists(os.path.join(self.root_dir, file)):
+            if (self.root_dir / file).exists():
                 f_obj.write(file + "\n")
 
         config = self.load_config()
-        with open(outfile, "w") as f:
+        with Path(outfile).open("w") as f:
             # exclude itself
             _write_exclude_entry_safe(outfile, f)
 
@@ -293,17 +290,17 @@ class SetupConfigHandler:
                     _write_exclude_entry_safe(ex, f)
 
             # tmp dir for test
-            tmp_dir = os.path.join(self.config_dir, "tmp")
+            tmp_dir = self.config_dir / "tmp"
             _write_exclude_entry_safe(tmp_dir, f)
 
             # past submissions
             _write_exclude_entry_safe(self.submission_dir, f)
 
             # dir for other models
-            if os.path.exists(self.dynalab_dir):
-                for m in os.listdir(self.dynalab_dir):
+            if self.dynalab_dir.exists():
+                for m in self.dynalab_dir.iterdir():
                     if m != model_name:
-                        _write_exclude_entry_safe(os.path.join(self.dynalab_dir, m), f)
+                        _write_exclude_entry_safe(self.dynalab_dir / m, f)
 
             if exclude_model:
                 _write_exclude_entry_safe(config["checkpoint"], f)

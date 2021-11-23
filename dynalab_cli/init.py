@@ -6,6 +6,7 @@
 import json
 import os
 import subprocess
+from pathlib import Path
 
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import (
@@ -114,14 +115,13 @@ class InitCommand(BaseCommand):
         self.args = args
 
         # sort out the work_dir path
-        self.work_dir = args.root_dir
-        self.root_dir = os.path.realpath(os.path.expanduser(args.root_dir))  # full path
-        while not os.path.exists(self.root_dir):
-            self.work_dir = input(
+        self.work_dir = Path(args.root_dir)
+        self.root_dir = Path(args.root_dir).expanduser().resolve()  # full path
+        while not self.root_dir.exists():
+            self.work_dir = Path(input(
                 f"Please input a valid root path to your repo: "
-            )  # user typed path
-            self.root_dir = os.path.realpath(os.path.expanduser(self.work_dir))
-
+            ))  # user typed path
+            self.root_dir = Path(self.work_dir).expanduser().resolve()
         self.config_handler = SetupConfigHandler(args.name)
         self.config = {}
 
@@ -134,28 +134,13 @@ class InitCommand(BaseCommand):
                 )
             else:
                 check_model_name(self.args.rename)
-                if os.path.exists(
-                    os.path.join(
-                        self.work_dir, self.config_handler.dynalab_dir, self.args.rename
-                    )
-                ):
+                if (self.work_dir / self.config_handler.dynalab_dir / self.args.rename).exists():
                     raise RuntimeError(
                         f"Model {self.args.rename} already exists. "
                         f"Unable to rename {self.args.name} to {self.args.rename}"
                     )
                 else:
-                    os.rename(
-                        os.path.join(
-                            self.work_dir,
-                            self.config_handler.dynalab_dir,
-                            self.args.name,
-                        ),
-                        os.path.join(
-                            self.work_dir,
-                            self.config_handler.dynalab_dir,
-                            self.args.rename,
-                        ),
-                    )
+                    (self.work_dir / self.config_handler.dynalab_dir / self.args.name).rename(self.work_dir / self.config_handler.dynalab_dir / self.args.rename)
                     print(f"Renamed model {self.args.name} to {self.args.rename}")
             return
 
@@ -163,7 +148,7 @@ class InitCommand(BaseCommand):
             if not self.config_handler.config_exists():
                 raise RuntimeError("Please run dynalab-cli init first")
             EDITOR = os.environ.get("EDITOR", "vim")
-            subprocess.run([EDITOR, self.config_handler.config_path])
+            subprocess.run([EDITOR, str(self.config_handler.config_path)])
             try:
                 print("Validating the updated config...")
                 self.config_handler.validate_config()
@@ -226,14 +211,11 @@ class InitCommand(BaseCommand):
 
         task_info = {"annotation_config": annotation_config, "task": value}
 
-        task_info_path = os.path.join(
-            self.config_handler.root_dir,
-            self.config_handler.dynalab_dir,
-            f"{value}.json",
-        )
-        task_io_dir = os.path.dirname(task_info_path)
-        os.makedirs(task_io_dir, exist_ok=True)
-        with open(task_info_path, "w+") as f:
+        task_info_path = self.config_handler.root_dir / self.config_handler.dynalab_dir / f"{value}.json"
+
+        task_io_dir = task_info_path.parent
+        task_io_dir.mkdir(exist_ok=True)
+        with task_info_path.open("w+") as f:
             f.write(json.dumps(task_info, indent=4))
 
         self.update_field(key, value)
@@ -243,8 +225,8 @@ class InitCommand(BaseCommand):
             value = get_path_inside_rootdir(value, root_dir=self.root_dir)
             message = (
                 f"{key.capitalize()} file found at "
-                f"{os.path.join(self.work_dir, value)}. Press enter, or specify "
-                f"alternative path [{os.path.join(self.work_dir, value)}]: "
+                f"{self.work_dir / value}. Press enter, or specify "
+                f"alternative path [{self.work_dir / value}]: "
             )
             ops = input(message)
             if ops.lower().strip():
@@ -258,7 +240,7 @@ class InitCommand(BaseCommand):
             if key == "handler":
                 message += (
                     f" or press enter to create a template {key} file at "
-                    f"{os.path.join(self.work_dir, default_filename(key))}"
+                    f"{self.work_dir / default_filename(key)}"
                 )
             value = input(f"{message}: ")
             if key == "handler" and not value.strip():
@@ -274,16 +256,16 @@ class InitCommand(BaseCommand):
         elif key == "setup":
             install_message = "pip install -e ."
         if not value and check_path(
-            f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
+            f"{self.root_dir / filename}", root_dir=self.root_dir
         ):
             ops = input(
                 f"{key.capitalize()} file found. Do you want us to install "
-                f"dependencies using {os.path.join(self.work_dir, filename)}? [Y/n] "
+                f"dependencies using {self.work_dir / filename}? [Y/n] "
             )
             if ops.lower().strip() in ("y", "yes"):
                 value = True
         elif value and not check_path(
-            f"{os.path.join(self.root_dir, filename)}", root_dir=self.root_dir
+            f"{self.root_dir / filename}", root_dir=self.root_dir
         ):
             print(
                 f"{key.capitalize()} file not found. "
@@ -329,26 +311,22 @@ class InitCommand(BaseCommand):
 
     def create_file(self, key):
         filename = default_filename(key)
-        filepath = os.path.join(self.root_dir, filename)
-        printpath = os.path.join(self.work_dir, filename)
+        filepath = self.root_dir / filename
+        printpath = self.work_dir / filename
 
-        if os.path.exists(filepath):
+        if filepath.exists():
             ops = input(f"{printpath} exists. Overwrite? [Y/n] ")
             if ops.strip().lower() not in ("y", "yes"):
                 return None
         if key == "handler":
-            template = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-                "dynalab",
-                "handler",
-                "handler.py.template",
-            )
-            with open(template) as f:
+            template = Path(__file__).resolve().parent.parent / "dynalab" / "handler" / "handler.py.template"
+
+            with template.open() as f:
                 content = f.read()
                 handler_content = content.format(your_task=self.config["task"])
-            with open(filepath, "w") as f:
+            with filepath.open("w") as f:
                 f.write(handler_content)
         else:
-            open(filepath, "w+").close()
+            filepath.open("w+").close()
         print(f"Created new {key} file at {printpath}")
         return printpath

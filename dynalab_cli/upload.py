@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 from datetime import datetime
+from pathlib import Path
 
 import requests
 from requests_toolbelt.multipart import encoder
@@ -48,18 +49,18 @@ class UploadCommand(BaseCommand):
 
         # set up exclude files for tarball
         print("Tarballing the project directory...")
-        tmp_dir = os.path.join(self.config_handler.dynalab_dir, self.args.name, "tmp")
-        os.makedirs(tmp_dir, exist_ok=True)
-        exclude_list_file = os.path.join(tmp_dir, "exclude.txt")
+        tmp_dir = self.config_handler.dynalab_dir / self.args.name / "tmp"
+        tmp_dir.mkdir(exist_ok=True)
+        exclude_list_file = tmp_dir / "exclude.txt"
         self.config_handler.write_exclude_filelist(
             exclude_list_file, self.args.name, exclude_model=False
         )
 
         # tarball
         tmp_tarball_dir = tempfile.TemporaryDirectory()
-        tarball = os.path.join(tmp_tarball_dir.name, f"{self.args.name}.tar.gz")
+        tarball = Path(tmp_tarball_dir.name) / f"{self.args.name}.tar.gz"
         process = subprocess.run(
-            ["tar", f"--exclude-from={exclude_list_file}", "-czf", tarball, "."],
+            ["tar", f"--exclude-from={exclude_list_file}", "-czf", str(tarball), "."],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
@@ -81,7 +82,7 @@ class UploadCommand(BaseCommand):
                 "taskCode": config["task"],
                 "tarball": (
                     f"{self.args.name}.tar.gz",
-                    open(tarball, "rb"),
+                    tarball.open("rb"),
                     "application/octet-stream",
                 ),
             }
@@ -127,11 +128,7 @@ class UploadCommand(BaseCommand):
             )
         finally:
             os.makedirs(self.config_handler.submission_dir, exist_ok=True)
-            submission = os.path.join(
-                self.config_handler.submission_dir,
-                datetime.now().strftime("%b-%d-%Y-%H-%M-%S-")
-                + os.path.basename(tarball),
-            )
+            submission = self.config_handler.submission_dir / datetime.now().strftime("%b-%d-%Y-%H-%M-%S-") + tarball.name
             shutil.move(tarball, submission)
             tmp_tarball_dir.cleanup()
             print(
