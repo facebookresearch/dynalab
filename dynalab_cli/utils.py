@@ -280,7 +280,7 @@ class SetupConfigHandler:
     def write_exclude_filelist(self, outfile, model_name, exclude_model=False):
         def _write_exclude_entry_safe(file, f_obj):
             if (self.root_dir / file).exists():
-                f_obj.write(file + "\n")
+                f_obj.write(str(file) + "\n")
 
         config = self.load_config()
         with Path(outfile).open("w") as f:
