@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
 import shutil
 import subprocess
 import tempfile
@@ -128,7 +127,7 @@ class UploadCommand(BaseCommand):
                 f"on Dynabench."
             )
         finally:
-            os.makedirs(self.config_handler.submission_dir, exist_ok=True)
+            self.config_handler.submission_dir.mkdir(exist_ok=True)
             submission = (
                 self.config_handler.submission_dir
                 / datetime.now().strftime("%b-%d-%Y-%H-%M-%S-")
