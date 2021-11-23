@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import json
-import os
 import re
 import webbrowser
 from pathlib import Path
@@ -17,6 +16,7 @@ from dynalab.config import DYNABENCH_API, DYNABENCH_WEB
 class APIToken:
     def __init__(self):
         self.cred_path = (Path("~") / ".dynalab" / "secrets.json").expanduser()
+
     def save(self, token):
         dirname = self.cred_path.parent
         dirname.mkdir(exist_ok=True)
@@ -127,14 +127,14 @@ def get_task_submission_limit(task_code):
             if task["dynalab_hr_diff"] is not None:
                 hr_diff = task["dynalab_hr_diff"]
             if task["dynalab_threshold"] is not None:
-                threshold = task['dynalab_threshold']
+                threshold = task["dynalab_threshold"]
             return hr_diff, threshold
     return hr_diff, threshold
 
 
 # some file path utils
 def check_path(path, root_dir=".", is_file=True, allow_empty=True):
-    path=Path(path)
+    path = Path(path)
     if not path:
         return False
     if not path.exists():
@@ -147,7 +147,12 @@ def check_path(path, root_dir=".", is_file=True, allow_empty=True):
 
 
 def get_path_inside_rootdir(path, root_dir="."):
-    return Path(path).expanduser().resolve().relative_to(Path(root_dir).expanduser().resolve())
+    return (
+        Path(path)
+        .expanduser()
+        .resolve()
+        .relative_to(Path(root_dir).expanduser().resolve())
+    )
 
 
 def default_filename(key):
@@ -205,8 +210,8 @@ class SetupConfigHandler:
 
     def write_config(self, config):
         self.config_dir.mkdir(exist_ok=True)
-        config["checkpoint"]=str(config["checkpoint"])
-        config["handler"]=str(config["handler"])
+        config["checkpoint"] = str(config["checkpoint"])
+        config["handler"] = str(config["handler"])
         with self.config_path.open("w+") as f:
             f.write(json.dumps(config, indent=4))
 
@@ -250,9 +255,7 @@ class SetupConfigHandler:
                     files = config[key]
                     for f in files:
                         assert check_path(
-                            self.root_dir / f,
-                            root_dir=self.root_dir,
-                            allow_empty=False,
+                            self.root_dir / f, root_dir=self.root_dir, allow_empty=False
                         ), f"{key} path {f} is empty or not a valid path"
                         assert (
                             f not in excluded_files

@@ -11,12 +11,12 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
-from requests_toolbelt.multipart import encoder
-from tqdm import tqdm
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_submission_limit
+from requests_toolbelt.multipart import encoder
+from tqdm import tqdm
 
 
 class UploadCommand(BaseCommand):
@@ -112,7 +112,8 @@ class UploadCommand(BaseCommand):
                 print(
                     f"Failed to submit model {self.args.name} "
                     f"due to submission limit exceeded. No more than {threshold} "
-                    f"submissions allowed every {hr_diff} hours for task {config['task']}."
+                    f"submissions allowed every {hr_diff} hours for "
+                    f"task {config['task']}."
                 )
             else:
                 print(f"Failed to submit model due to: {ex}")
@@ -128,7 +129,11 @@ class UploadCommand(BaseCommand):
             )
         finally:
             os.makedirs(self.config_handler.submission_dir, exist_ok=True)
-            submission = self.config_handler.submission_dir / datetime.now().strftime("%b-%d-%Y-%H-%M-%S-") + tarball.name
+            submission = (
+                self.config_handler.submission_dir
+                / datetime.now().strftime("%b-%d-%Y-%H-%M-%S-")
+                + tarball.name
+            )
             shutil.move(tarball, submission)
             tmp_tarball_dir.cleanup()
             print(

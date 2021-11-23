@@ -118,9 +118,9 @@ class InitCommand(BaseCommand):
         self.work_dir = Path(args.root_dir)
         self.root_dir = Path(args.root_dir).expanduser().resolve()  # full path
         while not self.root_dir.exists():
-            self.work_dir = Path(input(
-                f"Please input a valid root path to your repo: "
-            ))  # user typed path
+            self.work_dir = Path(
+                input(f"Please input a valid root path to your repo: ")
+            )  # user typed path
             self.root_dir = Path(self.work_dir).expanduser().resolve()
         self.config_handler = SetupConfigHandler(args.name)
         self.config = {}
@@ -134,13 +134,21 @@ class InitCommand(BaseCommand):
                 )
             else:
                 check_model_name(self.args.rename)
-                if (self.work_dir / self.config_handler.dynalab_dir / self.args.rename).exists():
+                if (
+                    self.work_dir / self.config_handler.dynalab_dir / self.args.rename
+                ).exists():
                     raise RuntimeError(
                         f"Model {self.args.rename} already exists. "
                         f"Unable to rename {self.args.name} to {self.args.rename}"
                     )
                 else:
-                    (self.work_dir / self.config_handler.dynalab_dir / self.args.name).rename(self.work_dir / self.config_handler.dynalab_dir / self.args.rename)
+                    (
+                        self.work_dir / self.config_handler.dynalab_dir / self.args.name
+                    ).rename(
+                        self.work_dir
+                        / self.config_handler.dynalab_dir
+                        / self.args.rename
+                    )
                     print(f"Renamed model {self.args.name} to {self.args.rename}")
             return
 
@@ -211,7 +219,11 @@ class InitCommand(BaseCommand):
 
         task_info = {"annotation_config": annotation_config, "task": value}
 
-        task_info_path = self.config_handler.root_dir / self.config_handler.dynalab_dir / f"{value}.json"
+        task_info_path = (
+            self.config_handler.root_dir
+            / self.config_handler.dynalab_dir
+            / f"{value}.json"
+        )
 
         task_io_dir = task_info_path.parent
         task_io_dir.mkdir(exist_ok=True)
@@ -319,7 +331,12 @@ class InitCommand(BaseCommand):
             if ops.strip().lower() not in ("y", "yes"):
                 return None
         if key == "handler":
-            template = Path(__file__).resolve().parent.parent / "dynalab" / "handler" / "handler.py.template"
+            template = (
+                Path(__file__).resolve().parent.parent
+                / "dynalab"
+                / "handler"
+                / "handler.py.template"
+            )
 
             with template.open() as f:
                 content = f.read()
