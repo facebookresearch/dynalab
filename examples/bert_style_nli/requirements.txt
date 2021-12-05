@@ -2,3 +2,4 @@ transformers
 sentencepiece
 protobuf
 torch
+

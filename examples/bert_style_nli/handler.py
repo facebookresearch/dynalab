@@ -39,7 +39,6 @@ class Handler(BaseDynaHandler):
         Load model and read relevant files here.
         Your extra files can be read from os.path.join(extra_file_dir, file_name).
         """
-        # self.model = MyModel(config)
         config = AutoConfig.from_pretrained("config.json")
         self.model = AutoModelForSequenceClassification.from_pretrained(
             '.', config=config
