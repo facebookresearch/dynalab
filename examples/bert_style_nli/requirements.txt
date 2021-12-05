@@ -1,0 +1,4 @@
+transformers
+sentencepiece
+protobuf
+torch
