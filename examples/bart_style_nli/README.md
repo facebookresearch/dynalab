@@ -1,14 +1,13 @@
-This directory contains an example handler.py for a Huggingface BERT-style NLI
-model. 
+This directory contains an example handler.py for a Huggingface BART-style NLI model. 
 
 ***How to customize initializer:***
-1. Since we are using BartModel specifically [this one](https://huggingface.co/facebook/bart-large-mnli/tree/main), we imported AutoModelForSequenceClassification and AutoTokenizer from transformers
+1. Since we are using BartModel specifically [this one](https://huggingface.co/facebook/bart-base/tree/main), we imported BartTokenizer, BartModel, if you are using BART istead you can import BertTokenizer, BertModel.
 
-2. Change *facebook/bart-large-mnli* in `model = AutoModelForSequenceClassification.from_pretrained('facebook/bart-large-mnli')` to be the name of your chosen model from HuggingFace, do the same for `tokenizer = AutoTokenizer.from_pretrained('facebook/bart-large-mnli')`
+2. Change *bart-base* in `model = BartModel.from_pretrained('facebook/bart-base')` to be the name of your chosen model from HuggingFace, do the same for `tokenizer = BartTokenizer.from_pretrained('facebook/bart-base')`
 
 ***Here are the following steps to use this handler:***
 
-1. Run `intializer.py` and it woould essentially download all the required files namely `pytorch_model.bin`, `config.json`, `tokenizer.json`, `vocab.json` and `tokenizer_config.json` into this folder (`dynalab/examples/bart_style_nli`)
+1. Run `intializer.py` and it would essentially download all the required files namely `pytorch_model.bin`, `config.json`, `special_tokens_map.json`, `vocab.json` and `tokenizer_config.json` into this folder (`dynalab/examples/bart_style_nli`)
 
 2. Make a new file `requirements.txt` and add:
 ```
