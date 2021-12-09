@@ -10,12 +10,12 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
+from requests_toolbelt.multipart import encoder
+from tqdm import tqdm
 
 from dynalab.config import DYNABENCH_API
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import AccessToken, SetupConfigHandler, get_task_submission_limit
-from requests_toolbelt.multipart import encoder
-from tqdm import tqdm
 
 
 class UploadCommand(BaseCommand):

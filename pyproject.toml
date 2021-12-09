@@ -2,7 +2,7 @@
 # This is required to make sorting same as fbcode as all absolute imports
 # are considered third party there
 known_third_party = [
-    "requests"
+    "requests", "requests_toolbelt", "tqdm"
 ]
 skip_glob = "**/build/**"
 combine_as_imports = true
