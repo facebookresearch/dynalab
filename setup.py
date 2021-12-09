@@ -24,5 +24,6 @@ setup(
         "requests_toolbelt>=0.9.1",
         "torchserve>=0.2.0",
         "torch-model-archiver>=0.4.2",
+        "tqdm",
     ],
 )
