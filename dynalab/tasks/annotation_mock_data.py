@@ -4,7 +4,7 @@ from dynalab.tasks.annotation_types import AnnotationTypeEnum
 
 
 def get_source_data(annotation, name_to_annotation_dict):
-    source_reference_name = annotation["constructor_args"]["reference_name"]
+    source_reference_name = annotation["reference_name"]
     source_annotation = name_to_annotation_dict[source_reference_name]
     source_data = annotation_mock_data_generators[source_annotation["type"]](
         source_annotation, name_to_annotation_dict
@@ -46,9 +46,9 @@ def generate_conf_mock_data(annotation=None, name_to_annotation_dict=None):
 
 def generate_multiclass_probs_mock_data(annotation, name_to_annotation_dict):
     mock_data = []
-    source_reference_name = annotation["constructor_args"]["reference_name"]
+    source_reference_name = annotation["reference_name"]
     source_annotation = name_to_annotation_dict[source_reference_name]
-    labels = source_annotation["constructor_args"]["labels"]
+    labels = source_annotation["labels"]
 
     for _ in range(3):
         probs_dict = {}
@@ -67,15 +67,21 @@ def generate_multiclass_probs_mock_data(annotation, name_to_annotation_dict):
 
 
 def generate_multiclass_mock_data(annotation, name_to_annotation_dict=None):
-    labels = annotation["constructor_args"]["labels"]
+    labels = annotation["labels"]
     random.shuffle(labels)
     return labels
 
 
 def generate_target_label_mock_data(annotation, name_to_annotation_dict=None):
-    labels = annotation["constructor_args"]["labels"]
+    labels = annotation["labels"]
     random.shuffle(labels)
     return labels
+
+
+def generate_multilabel_mock_data(annotation, name_to_annotation_dict=None):
+    labels = annotation["labels"]
+    random.shuffle(labels)
+    return [labels]
 
 
 annotation_mock_data_generators = {
@@ -86,4 +92,5 @@ annotation_mock_data_generators = {
     AnnotationTypeEnum.multiclass_probs.name: generate_multiclass_probs_mock_data,
     AnnotationTypeEnum.multiclass.name: generate_multiclass_mock_data,
     AnnotationTypeEnum.target_label.name: generate_target_label_mock_data,
+    AnnotationTypeEnum.multilabel.name: generate_multilabel_mock_data,
 }

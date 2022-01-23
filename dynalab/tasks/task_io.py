@@ -45,12 +45,30 @@ class TaskIO:
         else:
             return None
 
+    @staticmethod
+    def get_full_output_annotation_config_objs(task_config):
+        contexts_with_targets = task_config.get("context", [])
+        inputs_with_targets = task_config.get("input", [])
+        outputs_with_targets_condensed = task_config.get("output", [])
+
+        # We need to do this because output config objects might only be a name
+        # that references the full object in input or context
+        name_to_outputs = {
+            config_obj["name"]:
+            config_obj for config_obj in outputs_with_targets_condensed
+        }
+        for config_obj in contexts_with_targets + inputs_with_targets:
+            if config_obj["name"] in name_to_outputs:
+                name_to_outputs[config_obj["name"]] = config_obj
+        return name_to_outputs.values()
+
     def initialize_inputs_and_targets(self):
         self.inputs_without_targets = []
         self.targets = []
 
-        inputs_with_targets = self.task_info["annotation_config"]["input"]
-        outputs_with_targets = self.task_info["annotation_config"]["output"]
+        inputs_with_targets = self.task_info["config"].get("input", [])
+        outputs_with_targets = TaskIO.get_full_output_annotation_config_objs(
+            self.task_info["config"])
 
         output_names = set(output["name"] for output in outputs_with_targets)
 
@@ -76,7 +94,7 @@ class TaskIO:
             self.inputs_without_targets, input_names_to_annotation_dict
         )
         initialize_names_to_annotation_dict(
-            self.task_info["annotation_config"]["context"],
+            self.task_info["config"].get("context", []),
             input_names_to_annotation_dict,
         )
 
@@ -101,7 +119,7 @@ class TaskIO:
             input_names_to_annotation_dict,
         )
         max_mock_data_len = load_mock_data_for_annotations(
-            self.task_info["annotation_config"]["context"],
+            self.task_info["config"].get("context", []),
             max_mock_data_len,
             input_names_to_annotation_dict,
         )
@@ -117,13 +135,14 @@ class TaskIO:
             datum = {"uid": str(uuid.uuid4())}
             add_mock_data_for_annotations(self.inputs_without_targets, datum)
             add_mock_data_for_annotations(
-                self.task_info["annotation_config"]["context"], datum
+                self.task_info["config"].get("context", []), datum
             )
             mock_datapoints.append(datum)
 
         # generate sample_output
         target_names = set(target["name"] for target in self.targets)
-        outputs_with_targets = self.task_info["annotation_config"]["output"]
+        outputs_with_targets = TaskIO.get_full_output_annotation_config_objs(
+            self.task_info["config"])
         optional_fields = [
             output["name"]
             for output in outputs_with_targets
@@ -135,7 +154,7 @@ class TaskIO:
             outputs_with_targets, output_names_to_annotation_dict
         )
         initialize_names_to_annotation_dict(
-            self.task_info["annotation_config"]["context"],
+            self.task_info["config"].get("context", []),
             output_names_to_annotation_dict,
         )
 
@@ -158,7 +177,7 @@ class TaskIO:
         return sample_output
 
     # Note: This context comes from torchserve and stores some model relevant information.
-    # It is different from the context value present inside annotation_config.
+    # It is different from the context value present inside the task config.
     @staticmethod
     def _get_mock_torchserve_context(model_name: str, use_gpu: bool):
         config_handler = SetupConfigHandler(model_name)
@@ -290,10 +309,11 @@ class TaskIO:
 
         target_names = [target["name"] for target in self.targets]
 
-        outputs = self.task_info["annotation_config"]["output"]
-        name_to_constructor_args = {}
+        outputs = TaskIO.get_full_output_annotation_config_objs(
+            self.task_info["config"])
+        name_to_config_obj = {}
         for output in outputs:
-            name_to_constructor_args[output["name"]] = output["constructor_args"]
+            name_to_config_obj[output["name"]] = output
 
         for output in outputs:
             output_name = output["name"]
@@ -304,8 +324,8 @@ class TaskIO:
 
                 annotation_verifiers[output["type"]](
                     response[output_name],
-                    name_to_constructor_args[output_name],
-                    name_to_constructor_args,
+                    output_name,
+                    name_to_config_obj,
                     data,
                 )
 
@@ -328,9 +348,10 @@ class TaskIO:
         inputs, outputs = dict(), dict()
 
         add_annotations(self.inputs_without_targets, inputs, data)
-        add_annotations(self.task_info["annotation_config"]["context"], inputs, data)
+        add_annotations(self.task_info["config"].get("context", []), inputs, data)
         add_annotations(
-            self.task_info["annotation_config"]["output"], outputs, response
+            TaskIO.get_full_output_annotation_config_objs(self.task_info["config"]),
+            outputs, response,
         )
 
         return task, inputs, outputs

@@ -222,9 +222,9 @@ class InitCommand(BaseCommand):
             value = input(message)
 
         task = [task for task in tasks if task["task_code"] == value][0]
-        annotation_config = json.loads(task["annotation_config_json"])
+        task_config = json.loads(task["config_yaml"])
 
-        task_info = {"annotation_config": annotation_config, "task": value}
+        task_info = {"config": task_config, "task": value}
 
         task_info_path = os.path.join(
             self.config_handler.root_dir,
