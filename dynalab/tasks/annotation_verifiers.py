@@ -19,27 +19,22 @@ def verify_context_string_selection(
     assert obj in data[name_to_config_obj[name]["reference_name"]]
 
 
-def verify_conf(obj, name, name_to_config_obj, data):
-    assert isinstance(obj, float)
-    assert obj > 0 - EPSILON_PREC
-    assert obj < 1 + EPSILON_PREC
+def verify_prob(obj, name, name_to_config_obj, data):
 
-
-def verify_multiclass_probs(obj, name, name_to_config_obj, data):
-    assert isinstance(obj, dict)
-    assert set(obj.keys()) == set(
-        name_to_config_obj[name_to_config_obj[name]["reference_name"]]["labels"]
-    )
-    assert sum(obj.values()) < 1 + EPSILON_PREC
-    assert sum(obj.values()) > 1 - EPSILON_PREC
+    if name_to_config_obj[name].get("single_prob", False):
+        assert isinstance(obj, float)
+        assert obj > 0 - EPSILON_PREC
+        assert obj < 1 + EPSILON_PREC
+    else:
+        assert isinstance(obj, dict)
+        assert set(obj.keys()) == set(
+            name_to_config_obj[name_to_config_obj[name]["reference_name"]]["labels"]
+        )
+        assert sum(obj.values()) < 1 + EPSILON_PREC
+        assert sum(obj.values()) > 1 - EPSILON_PREC
 
 
 def verify_multiclass(obj, name, name_to_config_obj, data):
-    assert isinstance(obj, str)
-    assert obj in name_to_config_obj[name]["labels"]
-
-
-def verify_target_label(obj, name, name_to_config_obj, data):
     assert isinstance(obj, str)
     assert obj in name_to_config_obj[name]["labels"]
 
@@ -54,9 +49,7 @@ annotation_verifiers = {
     AnnotationTypeEnum.image.name: verify_image,
     AnnotationTypeEnum.string.name: verify_string,
     AnnotationTypeEnum.context_string_selection.name: verify_context_string_selection,
-    AnnotationTypeEnum.conf.name: verify_conf,
-    AnnotationTypeEnum.multiclass_probs.name: verify_multiclass_probs,
+    AnnotationTypeEnum.prob.name: verify_prob,
     AnnotationTypeEnum.multiclass.name: verify_multiclass,
-    AnnotationTypeEnum.target_label.name: verify_target_label,
     AnnotationTypeEnum.multilabel.name: verify_multilabel,
 }

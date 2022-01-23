@@ -40,39 +40,33 @@ def generate_context_string_selection_mock_data(annotation, name_to_annotation_d
     return [source_str[0:10] for source_str in source_data]
 
 
-def generate_conf_mock_data(annotation=None, name_to_annotation_dict=None):
-    return [random.random() for _ in range(3)]
+def generate_prob_mock_data(annotation, name_to_annotation_dict):
 
+    if annotation.get("single_prob", False):
+        return [random.random() for _ in range(3)]
+    else:
+        mock_data = []
+        source_reference_name = annotation["reference_name"]
+        source_annotation = name_to_annotation_dict[source_reference_name]
+        labels = source_annotation["labels"]
 
-def generate_multiclass_probs_mock_data(annotation, name_to_annotation_dict):
-    mock_data = []
-    source_reference_name = annotation["reference_name"]
-    source_annotation = name_to_annotation_dict[source_reference_name]
-    labels = source_annotation["labels"]
+        for _ in range(3):
+            probs_dict = {}
+            probs_sum = 0
+            for label in labels:
+                probs_dict[label] = random.random()
+                probs_sum += probs_dict[label]
 
-    for _ in range(3):
-        probs_dict = {}
-        probs_sum = 0
-        for label in labels:
-            probs_dict[label] = random.random()
-            probs_sum += probs_dict[label]
+            # normalize
+            for label in labels:
+                probs_dict[label] /= probs_sum
 
-        # normalize
-        for label in labels:
-            probs_dict[label] /= probs_sum
+            mock_data.append(probs_dict)
 
-        mock_data.append(probs_dict)
-
-    return mock_data
+        return mock_data
 
 
 def generate_multiclass_mock_data(annotation, name_to_annotation_dict=None):
-    labels = annotation["labels"]
-    random.shuffle(labels)
-    return labels
-
-
-def generate_target_label_mock_data(annotation, name_to_annotation_dict=None):
     labels = annotation["labels"]
     random.shuffle(labels)
     return labels
@@ -88,9 +82,7 @@ annotation_mock_data_generators = {
     AnnotationTypeEnum.image.name: generate_image_mock_data,
     AnnotationTypeEnum.string.name: generate_string_mock_data,
     AnnotationTypeEnum.context_string_selection.name: generate_context_string_selection_mock_data,
-    AnnotationTypeEnum.conf.name: generate_conf_mock_data,
-    AnnotationTypeEnum.multiclass_probs.name: generate_multiclass_probs_mock_data,
+    AnnotationTypeEnum.prob.name: generate_prob_mock_data,
     AnnotationTypeEnum.multiclass.name: generate_multiclass_mock_data,
-    AnnotationTypeEnum.target_label.name: generate_target_label_mock_data,
     AnnotationTypeEnum.multilabel.name: generate_multilabel_mock_data,
 }
