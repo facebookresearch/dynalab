@@ -7,6 +7,8 @@ import json
 import os
 import subprocess
 
+import yaml
+
 from dynalab_cli import BaseCommand
 from dynalab_cli.utils import (
     SetupConfigHandler,
@@ -222,7 +224,7 @@ class InitCommand(BaseCommand):
             value = input(message)
 
         task = [task for task in tasks if task["task_code"] == value][0]
-        task_config = json.loads(task["config_yaml"])
+        task_config = yaml.load(task["config_yaml"], yaml.SafeLoader)
 
         task_info = {"config": task_config, "task": value}
 
