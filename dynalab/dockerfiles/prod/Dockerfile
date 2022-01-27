@@ -24,7 +24,7 @@ RUN apt-get update && \
     curl \
     vim \
     git \
-    && rm -rf /var/lib/apt/lists/* 
+    && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
 RUN cd /tmp \
@@ -32,7 +32,7 @@ RUN cd /tmp \
     && python3 get-pip.py
 
 RUN python -m pip install --no-cache-dir torchserve
-RUN python -m pip install --no-cache-dir torch==1.7.1
+RUN python -m pip install --no-cache-dir torch==1.8.1
 
 COPY dockerd-entrypoint.sh /usr/local/bin/dockerd-entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh

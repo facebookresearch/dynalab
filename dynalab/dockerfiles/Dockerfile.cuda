@@ -33,7 +33,7 @@ RUN cd /tmp \
     && python3 get-pip.py
 
 RUN python -m pip install --no-cache-dir torchserve
-RUN python -m pip install --no-cache-dir torch==1.7.1
+RUN python -m pip install --no-cache-dir torch==1.8.1
 
 COPY ${add_dir}/dev-docker-entrypoint.sh /usr/local/bin/dev-entrypoint.sh
 RUN chmod +x /usr/local/bin/dev-entrypoint.sh

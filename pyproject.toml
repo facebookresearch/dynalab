@@ -2,7 +2,8 @@
 # This is required to make sorting same as fbcode as all absolute imports
 # are considered third party there
 known_third_party = [
-    "requests", "requests_toolbelt", "torchserve", "torch-model-archiver", "tqdm"
+    "requests", "requests_toolbelt", "torchserve", "torch-model-archiver", "tqdm",
+    "yaml", "pyyaml"
 ]
 skip_glob = "**/build/**"
 combine_as_imports = true
