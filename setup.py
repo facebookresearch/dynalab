@@ -25,5 +25,6 @@ setup(
         "torchserve>=0.2.0",
         "torch-model-archiver>=0.4.2",
         "tqdm",
+        "pyyaml"
     ],
 )
