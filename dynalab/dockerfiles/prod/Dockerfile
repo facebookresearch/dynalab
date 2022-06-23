@@ -18,7 +18,7 @@ RUN apt-get update && \
     ca-certificates \
     dpkg-dev \
     g++ \
-    python3.6-dev \
+    python3.7-dev \
     python3-pip \
     openjdk-11-jdk \
     curl \
@@ -26,7 +26,7 @@ RUN apt-get update && \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 1
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 1
 RUN cd /tmp \
     && curl -O https://bootstrap.pypa.io/get-pip.py \
     && python3 get-pip.py
@@ -46,7 +46,7 @@ WORKDIR /home/model-server/code
 
 RUN if [ -f requirements.txt ] && [ ${requirements} = True ]; then python -m pip install --no-cache-dir --force-reinstall -r requirements.txt; fi
 RUN if [ -f setup.py ] && [ ${setup} = True ]; then python -m pip install --no-cache-dir --force-reinstall -e .; fi
-RUN python -m pip install --force-reinstall git+git://github.com/facebookresearch/dynalab.git
+RUN python -m pip install --force-reinstall git+https://github.com/facebookresearch/dynalab.git
 
 ENV PYTHONIOENCODING=UTF-8
 ENV MY_SECRET=${my_secret}

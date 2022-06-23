@@ -201,7 +201,7 @@ class TestCommand(BaseCommand):
             "docker",
             "run",
             "--network=none",
-            "--cpus=4",
+            "--cpus=2",
             "--memory=16G",
             repository_name,
         ]
